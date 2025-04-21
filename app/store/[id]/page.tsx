@@ -21,14 +21,6 @@ export default function ProductPage({ params }) {
   const [addedToCart, setAddedToCart] = useState(false)
   const isMobile = useMobile()
 
-  // Exchange rate USD to MXN (approximate)
-  const exchangeRate = 17.5
-
-  // Convert USD price to MXN
-  const convertToMXN = (usdPrice) => {
-    return (usdPrice * exchangeRate).toFixed(2)
-  }
-
   if (!product) {
     return (
       <div className="flex flex-col min-h-screen">
@@ -125,7 +117,7 @@ export default function ProductPage({ params }) {
 
             <div className="flex flex-col">
               <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-              <p className="text-2xl font-bold mb-4">MX${convertToMXN(product.price)}</p>
+              <p className="text-2xl font-bold mb-4">MX${product.price.toFixed(2)}</p>
               <p className="text-muted-foreground mb-6">{product.description}</p>
 
               <div className="space-y-6">
@@ -202,7 +194,7 @@ export default function ProductPage({ params }) {
                         <h3 className="font-medium group-hover:text-primary transition-colors">
                           {relatedProduct.name}
                         </h3>
-                        <p className="font-bold mt-1">MX${convertToMXN(relatedProduct.price)}</p>
+                        <p className="font-bold mt-1">MX${relatedProduct.price.toFixed(2)}</p>
                       </div>
                     </Link>
                   </Card>
@@ -222,8 +214,8 @@ const products = [
     id: 1,
     name: "Playera MechaLeague",
     description: "Playera oficial con logo de MechaLeague en algodón premium",
-    price: 24.99,
-    image: "/placeholder.svg",
+    price: 250.0,
+    image: "/placeholder.svg?height=200&width=200&text=Playera%20MechaLeague",
     category: "apparel",
     featured: true,
     isNew: false,
@@ -231,10 +223,10 @@ const products = [
   },
   {
     id: 2,
-    name: "Sudadera Founders Championship",
-    description: "Sudadera conmemorativa del torneo inaugural de MechaLeague",
-    price: 49.99,
-    image: "/placeholder.svg",
+    name: "Sudadera MechaLeague",
+    description: "Sudadera conmemorativa con logo de MechaLeague",
+    price: 350.0,
+    image: "/images/hoodie-meca.jpg",
     category: "apparel",
     featured: true,
     isNew: false,
@@ -244,30 +236,19 @@ const products = [
     id: 3,
     name: "Gorra MechaLeague",
     description: "Gorra ajustable con logo bordado de MechaLeague",
-    price: 19.99,
-    image: "/placeholder.svg",
+    price: 180.0,
+    image: "/images/gorra-meca.jpg",
     category: "apparel",
     featured: false,
     isNew: true,
     date: "2024-01-10",
   },
   {
-    id: 4,
-    name: "Póster Equipo Vector -1",
-    description: "Póster de edición limitada del equipo Vector -1",
-    price: 14.99,
-    image: "/placeholder.svg",
-    category: "collectibles",
-    featured: false,
-    isNew: false,
-    date: "2023-12-05",
-  },
-  {
     id: 5,
     name: "Cuaderno MechaLeague",
     description: "Cuaderno premium con marca MechaLeague",
-    price: 12.99,
-    image: "/placeholder.svg",
+    price: 120.0,
+    image: "/images/cuaderno-meca.jpg",
     category: "stationery",
     featured: false,
     isNew: true,
@@ -275,10 +256,10 @@ const products = [
   },
   {
     id: 6,
-    name: "Botella Chemistry Quest",
-    description: "Botella de acero inoxidable con logo de Chemistry Quest",
-    price: 29.99,
-    image: "/placeholder.svg",
+    name: "Botella MechaLeague",
+    description: "Botella de acero inoxidable con logo de MechaLeague",
+    price: 200.0,
+    image: "/images/termo-meca.jpg",
     category: "accessories",
     featured: true,
     isNew: true,
@@ -286,65 +267,32 @@ const products = [
   },
   {
     id: 7,
-    name: "Set de Plumas MechaLeague",
-    description: "Set de 3 plumas premium con marca MechaLeague",
-    price: 15.99,
-    image: "/placeholder.svg",
+    name: "Pluma MechaLeague",
+    description: "Pluma premium con marca MechaLeague",
+    price: 80.0,
+    image: "/placeholder.svg?height=200&width=200&text=Pluma%20MechaLeague",
     category: "stationery",
     featured: false,
     isNew: false,
     date: "2023-10-20",
   },
   {
-    id: 8,
-    name: "Colección de Pines de Equipos",
-    description: "Set de pines coleccionables con todos los equipos de MechaLeague",
-    price: 24.99,
-    image: "/placeholder.svg",
-    category: "collectibles",
-    featured: false,
-    isNew: false,
-    date: "2023-11-30",
-  },
-  {
     id: 9,
     name: "Bandera MechaLeague",
     description: "Bandera oficial de MechaLeague para eventos y exhibición",
-    price: 34.99,
-    image: "/placeholder.svg",
+    price: 150.0,
+    image: "/images/bandera-meca.jpg",
     category: "accessories",
     featured: false,
     isNew: false,
     date: "2023-12-15",
   },
   {
-    id: 10,
-    name: "Aretes Diseño Robot",
-    description: "Aretes elegantes inspirados en diseños de robots de MechaLeague",
-    price: 19.99,
-    image: "/placeholder.svg",
-    category: "accessories",
-    featured: false,
-    isNew: true,
-    date: "2024-02-28",
-  },
-  {
-    id: 11,
-    name: "Dije MechaLeague",
-    description: "Dije metálico con logo de MechaLeague en cadena",
-    price: 22.99,
-    image: "/placeholder.svg",
-    category: "accessories",
-    featured: false,
-    isNew: false,
-    date: "2023-11-10",
-  },
-  {
     id: 12,
     name: "Póster Conmemorativo Championship",
     description: "Póster de edición limitada del Founders Championship",
-    price: 17.99,
-    image: "/placeholder.svg",
+    price: 100.0,
+    image: "/images/founders-championship.png",
     category: "collectibles",
     featured: true,
     isNew: false,
