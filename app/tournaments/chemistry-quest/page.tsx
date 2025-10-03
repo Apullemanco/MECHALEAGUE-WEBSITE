@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { useToast } from "@/hooks/use-toast"
-import { Auth } from "@/lib/auth"
+import { Database } from "@/lib/db"
 
 export default function ChemistryQuestPage() {
   const { toast } = useToast()
@@ -22,15 +22,15 @@ export default function ChemistryQuestPage() {
   const tournament = chemistryQuestTournament
   const [isFollowing, setIsFollowing] = useState(false)
 
-  // Move the currentUser check into useEffect
   useEffect(() => {
-    const currentUser = Auth.getCurrentUser()
-    if (currentUser) {
-      setIsFollowing(currentUser.followedTournaments.includes(tournament.id))
+    if (typeof window !== "undefined") {
+      const currentUser = Database.getCurrentUser()
+      if (currentUser) {
+        setIsFollowing(currentUser.followedTournaments.includes(tournament.id))
+      }
     }
   }, [tournament.id])
 
-  // Helper function to get team ID from name
   const getTeamId = (teamName) => {
     if (teamName === "Vector -1") return "team-minus-1"
     if (teamName.startsWith("Team ")) {
@@ -40,24 +40,19 @@ export default function ChemistryQuestPage() {
     return ""
   }
 
-  // Add new function to handle registration
   const handleRegisterTeam = () => {
     window.open("https://tally.so/r/3jge7R", "_blank")
   }
 
-  // Add new function to contact organizers
   const handleContactOrganizers = () => {
     window.open("https://www.instagram.com/mechaleague", "_blank")
   }
 
-  // Update the handleFollowTournament function
   const handleFollowTournament = () => {
-    // Check if we're in a browser environment
     if (typeof window === "undefined") {
       return
     }
 
-    // Check if user is logged in
     const userLoggedIn = localStorage.getItem("userLoggedIn")
     if (userLoggedIn !== "true") {
       localStorage.setItem("redirectAfterLogin", "/tournaments/chemistry-quest")
@@ -65,25 +60,25 @@ export default function ChemistryQuestPage() {
       return
     }
 
-    // Get current user
-    const currentUser = Auth.getCurrentUser()
+    const currentUser = Database.getCurrentUser()
     if (!currentUser) {
       router.push("/register")
       return
     }
 
-    // Check if tournament is already followed
     const isFollowed = currentUser.followedTournaments.includes(tournament.id)
 
     try {
-      // Toggle follow status
-      const updatedUser = Auth.updateProfile(currentUser.id, {
-        followedTournaments: isFollowed
-          ? currentUser.followedTournaments.filter((id) => id !== tournament.id)
-          : [...currentUser.followedTournaments, tournament.id],
+      const updatedFollowedTournaments = isFollowed
+        ? currentUser.followedTournaments.filter((id) => id !== tournament.id)
+        : [...currentUser.followedTournaments, tournament.id]
+
+      Database.updateUser(currentUser.id, {
+        followedTournaments: updatedFollowedTournaments,
       })
 
-      // Add notification
+      setIsFollowing(!isFollowed)
+
       const notifications = JSON.parse(localStorage.getItem("notifications") || "[]")
       notifications.push({
         id: Date.now(),
@@ -113,12 +108,6 @@ export default function ChemistryQuestPage() {
     }
   }
 
-  // Remove this line
-  // const currentUser = Auth.getCurrentUser()
-  // const isFollowing = currentUser?.followedTournaments.includes(tournament.id) || false
-
-  // It's already handled by the useState and useEffect above
-
   return (
     <div className="flex flex-col min-h-screen max-w-[1920px] mx-auto">
       <SiteHeader />
@@ -134,21 +123,25 @@ export default function ChemistryQuestPage() {
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-1">
               <Card className="hover:shadow-lg transition-shadow duration-300">
-                <div className="aspect-video relative">
-                  <Link href={`/tournaments/chemistry-quest`}>
-                    <Image
-                      src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/New%20Project%20%2880%29-uxbuErb6n8ZamqylgK8aDAVQD0T8Tz.png"
-                      alt={tournament.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </Link>
+                <div className="aspect-video relative bg-white p-4">
+                  <Image
+                    src="/images/chemistry-quest-banner.png"
+                    alt={tournament.name}
+                    fill
+                    className="object-contain"
+                  />
                 </div>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">{tournament.name}</h1>
-                    <Button variant="ghost" size="icon" onClick={handleFollowTournament} title="Follow tournament">
-                      <Heart className="h-5 w-5" />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleFollowTournament}
+                      title="Follow tournament"
+                      className={isFollowing ? "text-red-500" : ""}
+                    >
+                      <Heart className={`h-5 w-5 ${isFollowing ? "fill-current" : ""}`} />
                     </Button>
                   </div>
                   <div className="text-sm text-muted-foreground mb-3">Presented by Prepa Tec</div>
@@ -187,7 +180,7 @@ export default function ChemistryQuestPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {tournament.participatingTeams.map((team, index) => (
+                    {tournament.participatingTeams.map((team) => (
                       <div
                         key={team.id}
                         className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-md transition-colors"
@@ -196,12 +189,16 @@ export default function ChemistryQuestPage() {
                           href={`/teams/${team.id}`}
                           className="flex items-center gap-2 hover:text-primary transition-colors"
                         >
-                          <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                            {team.id === "team-minus-1" ? (
-                              <Image src="/images/vector-1-team.png" alt={team.name} fill className="object-cover" />
-                            ) : (
-                              <Image src="/placeholder.svg" alt={team.name} fill className="object-cover" />
-                            )}
+                          <div className="relative h-8 w-8 rounded-full overflow-hidden bg-white flex items-center justify-center">
+                            <Image
+                              src={
+                                team.id === "team-minus-1" ? "/images/vector-1-team.png" : "/images/team-default.png"
+                              }
+                              alt={team.name}
+                              width={32}
+                              height={32}
+                              className="object-contain p-1"
+                            />
                           </div>
                           <span>{team.name}</span>
                         </Link>
@@ -227,7 +224,7 @@ export default function ChemistryQuestPage() {
                     >
                       {isFollowing ? "Following" : "Follow Tournament"}
                     </Button>
-                    <Button variant="outline" className="w-full" onClick={handleContactOrganizers}>
+                    <Button variant="outline" className="w-full bg-transparent" onClick={handleContactOrganizers}>
                       Contact Organizers
                     </Button>
                   </div>
@@ -238,19 +235,13 @@ export default function ChemistryQuestPage() {
             <div className="lg:col-span-2">
               <Tabs defaultValue="schedule" className="animate-in fade-in duration-500">
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="schedule" className="transition-all hover:bg-primary/20">
-                    Schedule
-                  </TabsTrigger>
-                  <TabsTrigger value="matches" className="transition-all hover:bg-primary/20">
-                    Matches
-                  </TabsTrigger>
-                  <TabsTrigger value="teams" className="transition-all hover:bg-primary/20">
-                    Teams
-                  </TabsTrigger>
+                  <TabsTrigger value="schedule">Schedule</TabsTrigger>
+                  <TabsTrigger value="matches">Matches</TabsTrigger>
+                  <TabsTrigger value="teams">Teams</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="schedule" className="mt-6 animate-in slide-in-from-left duration-300">
-                  <Card className="hover:shadow-lg transition-shadow duration-300">
+                <TabsContent value="schedule" className="mt-6">
+                  <Card>
                     <CardHeader>
                       <CardTitle>Tournament Schedule</CardTitle>
                     </CardHeader>
@@ -286,8 +277,8 @@ export default function ChemistryQuestPage() {
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="matches" className="mt-6 animate-in slide-in-from-left duration-300">
-                  <Card className="hover:shadow-lg transition-shadow duration-300">
+                <TabsContent value="matches" className="mt-6">
+                  <Card>
                     <CardHeader>
                       <CardTitle>Upcoming Matches</CardTitle>
                     </CardHeader>
@@ -307,35 +298,31 @@ export default function ChemistryQuestPage() {
                               <TableRow key={index} className="hover:bg-muted/50 transition-colors">
                                 <TableCell className="font-medium">Q{index + 1}</TableCell>
                                 <TableCell>
-                                  <div className="flex flex-col space-y-1">
-                                    <div className="flex items-center space-x-2">
-                                      {match.blueAlliance.map((team, teamIndex) => (
-                                        <Link href={`/teams/${getTeamId(team)}`} key={teamIndex}>
-                                          <Badge
-                                            variant="outline"
-                                            className="bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer transition-colors"
-                                          >
-                                            {team}
-                                          </Badge>
-                                        </Link>
-                                      ))}
-                                    </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {match.blueAlliance.map((team, teamIndex) => (
+                                      <Link href={`/teams/${getTeamId(team)}`} key={teamIndex}>
+                                        <Badge
+                                          variant="outline"
+                                          className="bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer"
+                                        >
+                                          {team}
+                                        </Badge>
+                                      </Link>
+                                    ))}
                                   </div>
                                 </TableCell>
                                 <TableCell>
-                                  <div className="flex flex-col space-y-1">
-                                    <div className="flex items-center space-x-2">
-                                      {match.redAlliance.map((team, teamIndex) => (
-                                        <Link href={`/teams/${getTeamId(team)}`} key={teamIndex}>
-                                          <Badge
-                                            variant="outline"
-                                            className="bg-red-100 text-red-800 hover:bg-red-200 cursor-pointer transition-colors"
-                                          >
-                                            {team}
-                                          </Badge>
-                                        </Link>
-                                      ))}
-                                    </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {match.redAlliance.map((team, teamIndex) => (
+                                      <Link href={`/teams/${getTeamId(team)}`} key={teamIndex}>
+                                        <Badge
+                                          variant="outline"
+                                          className="bg-red-100 text-red-800 hover:bg-red-200 cursor-pointer"
+                                        >
+                                          {team}
+                                        </Badge>
+                                      </Link>
+                                    ))}
                                   </div>
                                 </TableCell>
                                 <TableCell>{match.time}</TableCell>
@@ -355,8 +342,8 @@ export default function ChemistryQuestPage() {
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="teams" className="mt-6 animate-in slide-in-from-left duration-300">
-                  <Card className="hover:shadow-lg transition-shadow duration-300">
+                <TabsContent value="teams" className="mt-6">
+                  <Card>
                     <CardHeader>
                       <CardTitle>Participating Teams</CardTitle>
                     </CardHeader>
@@ -365,17 +352,18 @@ export default function ChemistryQuestPage() {
                         {tournament.participatingTeams.map((team) => (
                           <Link href={`/teams/${team.id}`} key={team.id}>
                             <div className="flex items-center p-3 rounded-md hover:bg-muted transition-colors">
-                              <div className="relative h-10 w-10 rounded-full overflow-hidden mr-3">
-                                {team.id === "team-minus-1" ? (
-                                  <Image
-                                    src="/images/vector-1-team.png"
-                                    alt={team.name}
-                                    fill
-                                    className="object-cover"
-                                  />
-                                ) : (
-                                  <Image src="/placeholder.svg" alt={team.name} fill className="object-cover" />
-                                )}
+                              <div className="relative h-10 w-10 rounded-full overflow-hidden mr-3 bg-white flex items-center justify-center shrink-0">
+                                <Image
+                                  src={
+                                    team.id === "team-minus-1"
+                                      ? "/images/vector-1-team.png"
+                                      : "/images/team-default.png"
+                                  }
+                                  alt={team.name}
+                                  width={40}
+                                  height={40}
+                                  className="object-contain p-1"
+                                />
                               </div>
                               <div>
                                 <h3 className="font-medium">{team.name}</h3>
@@ -415,62 +403,19 @@ const chemistryQuestTournament = {
   teams: "1+",
   status: "Registration Open",
   description: "An upcoming MechaLeague competition focused on chemistry-related challenges.",
-  image:
-    "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/New%20Project%20%2880%29-uxbuErb6n8ZamqylgK8aDAVQD0T8Tz.png",
+  image: "/images/chemistry-quest-banner.png",
   schedule: [
-    {
-      time: "8:00 AM",
-      name: "Team Check-in",
-      location: "Main Entrance",
-    },
-    {
-      time: "9:00 AM",
-      name: "Opening Ceremony",
-      location: "Main Arena",
-    },
-    {
-      time: "9:30 AM",
-      name: "Qualification Matches Begin",
-      location: "Competition Field",
-    },
-    {
-      time: "12:00 PM",
-      name: "Lunch Break",
-      location: "Cafeteria",
-    },
-    {
-      time: "1:00 PM",
-      name: "Qualification Matches Resume",
-      location: "Competition Field",
-    },
-    {
-      time: "3:00 PM",
-      name: "Alliance Selection",
-      location: "Main Arena",
-    },
-    {
-      time: "3:30 PM",
-      name: "Playoff Matches",
-      location: "Competition Field",
-    },
-    {
-      time: "5:00 PM",
-      name: "Finals",
-      location: "Competition Field",
-    },
-    {
-      time: "6:00 PM",
-      name: "Awards Ceremony",
-      location: "Main Arena",
-    },
+    { time: "8:00 AM", name: "Team Check-in", location: "Main Entrance" },
+    { time: "9:00 AM", name: "Opening Ceremony", location: "Main Arena" },
+    { time: "9:30 AM", name: "Qualification Matches Begin", location: "Competition Field" },
+    { time: "12:00 PM", name: "Lunch Break", location: "Cafeteria" },
+    { time: "1:00 PM", name: "Qualification Matches Resume", location: "Competition Field" },
+    { time: "3:00 PM", name: "Alliance Selection", location: "Main Arena" },
+    { time: "3:30 PM", name: "Playoff Matches", location: "Competition Field" },
+    { time: "5:00 PM", name: "Finals", location: "Competition Field" },
+    { time: "6:00 PM", name: "Awards Ceremony", location: "Main Arena" },
   ],
-  participatingTeams: [
-    {
-      id: "team-minus-1",
-      name: "Vector -1",
-      rank: 3,
-    },
-  ],
+  participatingTeams: [{ id: "team-minus-1", name: "Vector -1", rank: 3 }],
   upcomingMatches: [
     {
       blueAlliance: ["Vector -1", "TBD", "TBD"],

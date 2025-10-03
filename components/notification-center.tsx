@@ -1,74 +1,90 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { CheckCircle, Bell, Trash2 } from "lucide-react"
+import { Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
-export function NotificationCenter({ onClose }) {
-  const [notifications, setNotifications] = useState([])
+interface Notification {
+  id: number
+  type: string
+  title: string
+  description: string
+  date: string
+  read: boolean
+}
+
+export function NotificationCenter() {
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    const storedNotifications = localStorage.getItem("notifications")
-    if (storedNotifications) {
-      setNotifications(JSON.parse(storedNotifications))
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("notifications")
+      if (stored) {
+        setNotifications(JSON.parse(stored))
+      }
     }
   }, [])
 
-  const clearAllNotifications = () => {
-    localStorage.setItem("notifications", JSON.stringify([]))
-    setNotifications([])
-  }
-
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case "team_followed":
-      case "tournament_followed":
-      case "registration":
-      case "login":
-      case "profile_updated":
-      case "email_updated":
-      case "password_updated":
-      case "settings_updated":
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      default:
-        return <Bell className="h-4 w-4 text-blue-500" />
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (newOpen && typeof window !== "undefined") {
+      // Eliminar todas las notificaciones al abrir el centro de notificaciones
+      localStorage.setItem("notifications", JSON.stringify([]))
+      setNotifications([])
     }
   }
 
+  const unreadCount = notifications.filter((n) => !n.read).length
+
   return (
-    <div className="absolute top-full right-0 mt-2 w-80 bg-background border rounded-md shadow-md z-50">
-      <div className="p-3 flex items-center justify-between border-b">
-        <h3 className="font-medium">Notifications</h3>
-        <Button variant="ghost" size="sm" onClick={clearAllNotifications} title="Clear all notifications">
-          <Trash2 className="h-4 w-4" />
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
         </Button>
-      </div>
-      <ScrollArea className="h-[400px]">
-        {notifications.length > 0 ? (
-          <ul className="divide-y divide-border">
-            {notifications.map((notification) => (
-              <li key={notification.id} className="p-3 hover:bg-muted/50 transition-colors">
-                <div className="flex items-start gap-2">
-                  <div className="mt-0.5">{getNotificationIcon(notification.type)}</div>
-                  <div className="flex-1">
-                    <div className="font-medium">{notification.title}</div>
-                    <div className="text-sm text-muted-foreground">{notification.description}</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {new Date(notification.date).toLocaleString()}
-                    </div>
-                  </div>
+      </SheetTrigger>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Notifications</SheetTitle>
+          <SheetDescription>Stay updated with the latest MechaLeague news</SheetDescription>
+        </SheetHeader>
+        <ScrollArea className="h-[calc(100vh-120px)] mt-6">
+          {notifications.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Bell className="h-12 w-12 mx-auto mb-4 opacity-20" />
+              <p>No notifications yet</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-4 rounded-lg border ${notification.read ? "bg-background" : "bg-muted/50"}`}
+                >
+                  <h4 className="font-medium mb-1">{notification.title}</h4>
+                  <p className="text-sm text-muted-foreground mb-2">{notification.description}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(notification.date).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
                 </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="p-8 text-center">
-            <Bell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-muted-foreground">No notifications</p>
-          </div>
-        )}
-      </ScrollArea>
-    </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
   )
 }

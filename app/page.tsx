@@ -35,7 +35,7 @@ export default function HomePage() {
                 <Button asChild className="transition-transform hover:scale-105">
                   <Link href="/teams">Explore Teams</Link>
                 </Button>
-                <Button variant="outline" asChild className="transition-transform hover:scale-105">
+                <Button variant="outline" asChild className="transition-transform hover:scale-105 bg-transparent">
                   <Link href="/tournaments">View Tournaments</Link>
                 </Button>
               </div>
@@ -107,7 +107,11 @@ export default function HomePage() {
                   </p>
                 </CardContent>
                 <CardFooter>
-                  <Button variant="outline" asChild className="w-full hover:bg-primary/10 transition-colors">
+                  <Button
+                    variant="outline"
+                    asChild
+                    className="w-full hover:bg-primary/10 transition-colors bg-transparent"
+                  >
                     <Link href="/tournaments/mechaleague-founders-championship">View results</Link>
                   </Button>
                 </CardFooter>
@@ -134,12 +138,13 @@ export default function HomePage() {
                   <Card className="overflow-hidden h-full transition-all duration-300 hover:shadow-lg group-hover:border-primary/50 bg-gradient-to-b from-gray-100 to-transparent dark:from-gray-800">
                     <CardContent className="p-6">
                       <div className="flex flex-col items-center text-center gap-4">
-                        <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-muted group-hover:border-primary transition-colors">
+                        <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-muted group-hover:border-primary transition-colors bg-white flex items-center justify-center">
                           <Image
-                            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team5-random.jpg-Yx9Yd9Yd9Yx9Yd9Yd9Yx9Yd9Yd9Yx9Yd9Yd9.jpeg"
+                            src="/images/team-default.png"
                             alt={topTeams[1].name}
-                            fill
-                            className="object-cover"
+                            width={64}
+                            height={64}
+                            className="object-contain p-2"
                           />
                         </div>
                         <div>
@@ -168,12 +173,13 @@ export default function HomePage() {
                   <Card className="overflow-hidden h-full transition-all duration-300 hover:shadow-lg group-hover:border-primary/50 bg-gradient-to-b from-yellow-100 to-transparent dark:from-yellow-900/30">
                     <CardContent className="p-6">
                       <div className="flex flex-col items-center text-center gap-4">
-                        <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-yellow-400 group-hover:border-primary transition-colors">
+                        <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-yellow-400 group-hover:border-primary transition-colors bg-white flex items-center justify-center">
                           <Image
-                            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team12-random.jpg-Yx9Yd9Yd9Yx9Yd9Yd9Yx9Yd9Yd9Yx9Yd9Yd9.jpeg"
+                            src="/images/team-default.png"
                             alt={topTeams[0].name}
-                            fill
-                            className="object-cover"
+                            width={80}
+                            height={80}
+                            className="object-contain p-2"
                           />
                         </div>
                         <div>
@@ -202,8 +208,14 @@ export default function HomePage() {
                   <Card className="overflow-hidden h-full transition-all duration-300 hover:shadow-lg group-hover:border-primary/50 bg-gradient-to-b from-amber-100 to-transparent dark:from-amber-900/30">
                     <CardContent className="p-6">
                       <div className="flex flex-col items-center text-center gap-4">
-                        <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-muted group-hover:border-primary transition-colors">
-                          <Image src="/images/vector-1-team.png" alt={topTeams[2].name} fill className="object-cover" />
+                        <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-muted group-hover:border-primary transition-colors bg-white flex items-center justify-center">
+                          <Image
+                            src="/images/vector-1-team.png"
+                            alt={topTeams[2].name}
+                            width={64}
+                            height={64}
+                            className="object-contain p-1"
+                          />
                         </div>
                         <div>
                           <h3 className="font-bold text-lg group-hover:text-primary transition-colors">
@@ -270,14 +282,14 @@ const topTeams = [
     name: "Equipo 12",
     rank: 1,
     members: 2,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
   },
   {
     id: "team-5",
     name: "Equipo 5",
     rank: 2,
     members: 3,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
   },
   {
     id: "team-minus-1",

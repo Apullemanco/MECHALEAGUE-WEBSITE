@@ -81,6 +81,12 @@ export class Database {
     users[userIndex] = updatedUser
     localStorage.setItem("mechaleague_users", JSON.stringify(users))
 
+    // Update current user if it's the same
+    const currentUserId = localStorage.getItem("currentUserId")
+    if (currentUserId === id) {
+      localStorage.setItem("currentUser", JSON.stringify(updatedUser))
+    }
+
     return updatedUser
   }
 
@@ -124,8 +130,12 @@ export class Database {
       return
     }
 
+    const user = this.getUserById(userId)
+    if (!user) return
+
     localStorage.setItem("currentUserId", userId)
     localStorage.setItem("userLoggedIn", "true")
+    localStorage.setItem("currentUser", JSON.stringify(user))
   }
 
   // Clear current user (logout)
@@ -137,6 +147,7 @@ export class Database {
 
     localStorage.removeItem("currentUserId")
     localStorage.removeItem("userLoggedIn")
+    localStorage.removeItem("currentUser")
   }
 
   // Follow/unfollow team

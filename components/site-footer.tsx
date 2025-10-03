@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Instagram } from "lucide-react"
 
 export function SiteFooter() {
   return (
@@ -30,6 +31,14 @@ export function SiteFooter() {
                 Contact
               </Link>
             </div>
+            <div className="flex gap-4 mt-4">
+              <Button variant="ghost" size="icon" asChild>
+                <Link href="https://www.instagram.com/mechaleague/" target="_blank" rel="noopener noreferrer">
+                  <Instagram className="h-5 w-5" />
+                  <span className="sr-only">Instagram</span>
+                </Link>
+              </Button>
+            </div>
           </div>
           <div>
             <Card>
@@ -48,8 +57,8 @@ export function SiteFooter() {
           </div>
         </div>
         <div className="border-t py-6 flex flex-col md:flex-row items-center justify-between">
-          <p className="text-sm text-muted-foreground">© 2024 MechaLeague. All rights reserved.</p>
-          <Button asChild variant="outline" size="sm" className="mt-4 md:mt-0">
+          <p className="text-sm text-muted-foreground">© 2025 MechaLeague. All rights reserved.</p>
+          <Button asChild variant="outline" size="sm" className="mt-4 md:mt-0 bg-transparent">
             <Link href="/contact">Contact Us</Link>
           </Button>
         </div>

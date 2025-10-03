@@ -41,8 +41,14 @@ export default function HallOfFamePage() {
                 </CardHeader>
                 <CardContent className="p-6 space-y-4 relative z-10">
                   <div className="flex justify-center">
-                    <div className="relative h-32 w-32 rounded-full overflow-hidden border-4 border-amber-500 shadow-lg">
-                      <Image src="/images/vector-1-team.png" alt="Vector -1" fill className="object-cover" />
+                    <div className="relative h-32 w-32 rounded-full overflow-hidden border-4 border-amber-500 shadow-lg bg-white flex items-center justify-center">
+                      <Image
+                        src="/images/vector-1-team.png"
+                        alt="Vector -1"
+                        width={128}
+                        height={128}
+                        className="object-contain p-2"
+                      />
                     </div>
                   </div>
 
@@ -104,12 +110,13 @@ export default function HallOfFamePage() {
                 </CardHeader>
                 <CardContent className="p-6 space-y-4 relative z-10">
                   <div className="flex justify-center">
-                    <div className="relative h-32 w-32 rounded-full overflow-hidden border-4 border-amber-500 shadow-lg">
+                    <div className="relative h-32 w-32 rounded-full overflow-hidden border-4 border-amber-500 shadow-lg bg-white flex items-center justify-center">
                       <Image
-                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team12-random.jpg-Yx9Yd9Yd9Yx9Yd9Yd9Yx9Yd9Yd9Yx9Yd9Yd9.jpeg"
+                        src="/images/team-default.png"
                         alt="Equipo 12"
-                        fill
-                        className="object-cover"
+                        width={128}
+                        height={128}
+                        className="object-contain p-2"
                       />
                     </div>
                   </div>
@@ -168,12 +175,13 @@ export default function HallOfFamePage() {
                 </CardHeader>
                 <CardContent className="p-6 space-y-4 relative z-10">
                   <div className="flex justify-center">
-                    <div className="relative h-32 w-32 rounded-full overflow-hidden border-4 border-amber-500 shadow-lg">
+                    <div className="relative h-32 w-32 rounded-full overflow-hidden border-4 border-amber-500 shadow-lg bg-white flex items-center justify-center">
                       <Image
-                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team5-random.jpg-Yx9Yd9Yd9Yx9Yd9Yd9Yx9Yd9Yd9Yx9Yd9Yd9.jpeg"
+                        src="/images/team-default.png"
                         alt="Equipo 5"
-                        fill
-                        className="object-cover"
+                        width={128}
+                        height={128}
+                        className="object-contain p-2"
                       />
                     </div>
                   </div>

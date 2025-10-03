@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ChevronRight, Trophy, Users, Heart, AlertCircle, Bell, Search } from "lucide-react"
+import { ChevronRight, Trophy, Users, Heart, AlertCircle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -13,17 +12,15 @@ import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { fetchTeamsFromGoogleSheets } from "@/lib/google-sheets"
 import { useToast } from "@/hooks/use-toast"
-import { useMobile } from "@/hooks/use-mobile"
+import { Database } from "@/lib/db"
 
 export default function TeamsPage() {
-  const [searchQuery, setSearchQuery] = useState("")
   const [allTeams, setAllTeams] = useState([...teams])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
   const [followedTeams, setFollowedTeams] = useState<string[]>([])
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const { toast } = useToast()
-  const isMobile = useMobile()
 
   useEffect(() => {
     async function loadNewTeams() {
@@ -31,8 +28,7 @@ export default function TeamsPage() {
         setLoading(true)
         setError(null)
         const newTeams = await fetchTeamsFromGoogleSheets()
-        // Assign images to new teams
-        const newTeamsWithImages = newTeams.map((team, index) => {
+        const newTeamsWithImages = newTeams.map((team) => {
           return {
             ...team,
           }
@@ -50,62 +46,69 @@ export default function TeamsPage() {
   }, [])
 
   useEffect(() => {
-    // Check if user is logged in
-    const userLoggedIn = localStorage.getItem("userLoggedIn")
-    if (userLoggedIn === "true") {
-      setIsLoggedIn(true)
-      // Load followed teams from localStorage
-      const storedFollowedTeams = localStorage.getItem("followedTeams")
-      if (storedFollowedTeams) {
-        setFollowedTeams(JSON.parse(storedFollowedTeams))
+    if (typeof window !== "undefined") {
+      const userLoggedIn = localStorage.getItem("userLoggedIn")
+      if (userLoggedIn === "true") {
+        setIsLoggedIn(true)
+        const currentUser = Database.getCurrentUser()
+        if (currentUser && currentUser.followedTeams) {
+          setFollowedTeams(currentUser.followedTeams)
+        }
       }
     }
   }, [])
 
-  const filteredTeams = allTeams.filter((team) => team.name.toLowerCase().includes(searchQuery.toLowerCase()))
-
   const handleFollowTeam = (teamId: string) => {
     if (!isLoggedIn) {
-      // Redirect to login page if not logged in
-      localStorage.setItem("redirectAfterLogin", "/teams")
+      if (typeof window !== "undefined") {
+        localStorage.setItem("redirectAfterLogin", "/teams")
+      }
       window.location.href = "/register"
       return
     }
 
-    let updatedFollowedTeams
-    if (followedTeams.includes(teamId)) {
-      // Unfollow team
-      updatedFollowedTeams = followedTeams.filter((id) => id !== teamId)
-      toast({
-        title: "Team unfollowed",
-        description: "You will no longer receive updates about this team",
-      })
-    } else {
-      // Follow team
-      updatedFollowedTeams = [...followedTeams, teamId]
-      toast({
-        title: "Team followed",
-        description: "You will now receive updates about this team",
-      })
+    const currentUser = Database.getCurrentUser()
+    if (!currentUser) return
 
-      // Add notification about following the team
+    try {
+      const updatedUser = Database.toggleFollowTeam(currentUser.id, teamId)
+      setFollowedTeams(updatedUser.followedTeams)
+
       const team = allTeams.find((t) => t.id === teamId)
       if (team) {
-        const notifications = JSON.parse(localStorage.getItem("notifications") || "[]")
-        notifications.push({
-          id: Date.now(),
-          type: "team_followed",
-          title: `You are now following ${team.name}`,
-          description: "You will receive updates about matches and results",
-          date: new Date().toISOString(),
-          read: false,
-        })
-        localStorage.setItem("notifications", JSON.stringify(notifications))
-      }
-    }
+        if (updatedUser.followedTeams.includes(teamId)) {
+          toast({
+            title: "Team followed",
+            description: `You are now following ${team.name}`,
+          })
 
-    setFollowedTeams(updatedFollowedTeams)
-    localStorage.setItem("followedTeams", JSON.stringify(updatedFollowedTeams))
+          if (typeof window !== "undefined") {
+            const notifications = JSON.parse(localStorage.getItem("notifications") || "[]")
+            notifications.push({
+              id: Date.now(),
+              type: "team_followed",
+              title: `You are now following ${team.name}`,
+              description: "You will receive updates about matches and results",
+              date: new Date().toISOString(),
+              read: false,
+            })
+            localStorage.setItem("notifications", JSON.stringify(notifications))
+          }
+        } else {
+          toast({
+            title: "Team unfollowed",
+            description: `You unfollowed ${team.name}`,
+          })
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling team follow:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update team follow status",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -118,20 +121,8 @@ export default function TeamsPage() {
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl">MechaLeague teams</h1>
                 <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed">
-                  Browse all teams or search for your favorites
+                  Browse all teams competing in MechaLeague
                 </p>
-              </div>
-              <div className="w-full max-w-sm space-y-2">
-                <div className="relative">
-                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search teams..."
-                    className="pl-8"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
               </div>
             </div>
 
@@ -144,10 +135,9 @@ export default function TeamsPage() {
             )}
 
             <Tabs defaultValue="all" className="mt-8">
-              <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
+              <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
                 <TabsTrigger value="all">All teams</TabsTrigger>
                 <TabsTrigger value="top">Top ranked</TabsTrigger>
-                {isLoggedIn && <TabsTrigger value="followed">Followed</TabsTrigger>}
               </TabsList>
 
               <TabsContent value="all" className="mt-6">
@@ -155,9 +145,9 @@ export default function TeamsPage() {
                   <div className="text-center py-12">
                     <p className="text-muted-foreground">Loading teams...</p>
                   </div>
-                ) : filteredTeams.length > 0 ? (
+                ) : allTeams.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredTeams.map((team) => (
+                    {allTeams.map((team) => (
                       <TeamCard
                         key={team.id}
                         team={team}
@@ -169,16 +159,16 @@ export default function TeamsPage() {
                   </div>
                 ) : (
                   <div className="col-span-full text-center py-12">
-                    <p className="text-muted-foreground">No teams found matching your search.</p>
+                    <p className="text-muted-foreground">No teams found.</p>
                   </div>
                 )}
               </TabsContent>
 
               <TabsContent value="top" className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredTeams
+                  {allTeams
                     .filter((team) => team.rank && team.rank <= 5)
-                    .sort((a, b) => a.rank - b.rank)
+                    .sort((a, b) => (a.rank || 0) - (b.rank || 0))
                     .map((team) => (
                       <TeamCard
                         key={team.id}
@@ -190,38 +180,6 @@ export default function TeamsPage() {
                     ))}
                 </div>
               </TabsContent>
-
-              {isLoggedIn && (
-                <TabsContent value="followed" className="mt-6">
-                  {followedTeams.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredTeams
-                        .filter((team) => followedTeams.includes(team.id))
-                        .map((team) => (
-                          <TeamCard
-                            key={team.id}
-                            team={team}
-                            isFollowed={true}
-                            onFollowToggle={handleFollowTeam}
-                            isLoggedIn={isLoggedIn}
-                          />
-                        ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-medium mb-2">No followed teams</h3>
-                      <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                        You haven't followed any teams yet. Follow teams to receive updates about their matches and
-                        results.
-                      </p>
-                      <Button asChild variant="outline">
-                        <Link href="#all">Browse teams</Link>
-                      </Button>
-                    </div>
-                  )}
-                </TabsContent>
-              )}
             </Tabs>
           </div>
         </section>
@@ -231,92 +189,108 @@ export default function TeamsPage() {
   )
 }
 
-function TeamCard({ team, isFollowed, onFollowToggle, isLoggedIn }) {
-  // Function to get team image
-  const getTeamImage = (team) => {
+interface TeamCardProps {
+  team: {
+    id: string
+    name: string
+    rank?: number
+    members: number
+    logo: string
+    recentPerformance: string
+    participants?: string[]
+  }
+  isFollowed: boolean
+  onFollowToggle: (teamId: string) => void
+  isLoggedIn: boolean
+}
+
+function TeamCard({ team, isFollowed, onFollowToggle, isLoggedIn }: TeamCardProps) {
+  const getTeamImage = (team: TeamCardProps["team"]) => {
     if (team.id === "team-minus-1") {
       return "/images/vector-1-team.png"
     }
-
-    // Use the new default team image for all other teams
     return "/images/team-default.png"
   }
 
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-md h-full">
-      <CardContent className="p-6">
-        <div className="flex items-center gap-4">
-          <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-muted">
-            <Image
-              src={getTeamImage(team) || "/images/team-default.png"}
-              alt={team.name}
-              fill
-              className="object-cover"
-              onError={(e) => {
-                // If image fails, use the default team image
-                e.currentTarget.src = "/images/team-default.png"
-              }}
-            />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-lg">{team.name}</h3>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`${isFollowed ? "text-red-500" : "text-muted-foreground"}`}
-                onClick={(e) => {
-                  e.preventDefault()
-                  onFollowToggle(team.id)
+    <Link href={`/teams/${team.id}`}>
+      <Card className="overflow-hidden transition-all hover:shadow-md h-full cursor-pointer">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4">
+            <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-muted flex items-center justify-center bg-white">
+              <Image
+                src={getTeamImage(team) || "/placeholder.svg"}
+                alt={team.name}
+                width={64}
+                height={64}
+                className="object-contain p-2"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.src = "/images/team-default.png"
                 }}
-                title={isFollowed ? "Unfollow team" : "Follow team"}
-              >
-                <Heart className={`h-5 w-5 ${isFollowed ? "fill-current" : ""}`} />
-              </Button>
+              />
             </div>
-            {team.rank ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                <Trophy className="h-4 w-4" />
-                <span>Rank: #{team.rank}</span>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-lg">{team.name}</h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`${isFollowed ? "text-red-500" : "text-muted-foreground"}`}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    onFollowToggle(team.id)
+                  }}
+                  title={isFollowed ? "Unfollow team" : "Follow team"}
+                >
+                  <Heart className={`h-5 w-5 ${isFollowed ? "fill-current" : ""}`} />
+                </Button>
               </div>
-            ) : (
-              <div className="text-sm text-muted-foreground mt-1">
-                <span className="text-primary">New Team</span>
+              {team.rank ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                  <Trophy className="h-4 w-4" />
+                  <span>Rank: #{team.rank}</span>
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-primary">New Team</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Users className="h-4 w-4" />
+                <span>{team.members} members</span>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </div>
+          <div className="mt-4 pt-4 border-t">
+            <div className="text-sm">
+              <span className="font-medium">Status: </span>
+              <span className="text-muted-foreground">{team.recentPerformance}</span>
+            </div>
+            {team.id === "team-minus-1" && (
+              <div className="text-sm mt-1">
+                <span className="font-medium">Achievement: </span>
+                <span className="text-muted-foreground">First officially registered team</span>
               </div>
             )}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Users className="h-4 w-4" />
-              <span>{team.members} members</span>
+            {team.participants && team.participants.length > 0 && (
+              <div className="mt-2">
+                <span className="text-sm font-medium">Members: </span>
+                <span className="text-sm text-muted-foreground">{team.participants.join(", ")}</span>
+              </div>
+            )}
+          </div>
+          <div className="mt-4 pt-2">
+            <div className="inline-flex items-center text-sm font-medium text-primary">
+              View details
+              <ChevronRight className="h-4 w-4 ml-1" />
             </div>
           </div>
-          <ChevronRight className="h-5 w-5 text-muted-foreground" />
-        </div>
-        <div className="mt-4 pt-4 border-t">
-          <div className="text-sm">
-            <span className="font-medium">Status: </span>
-            <span className="text-muted-foreground">{team.recentPerformance}</span>
-          </div>
-          {team.id === "team-minus-1" && (
-            <div className="text-sm mt-1">
-              <span className="font-medium">Achievement: </span>
-              <span className="text-muted-foreground">First officially registered team</span>
-            </div>
-          )}
-          {team.participants && team.participants.length > 0 && (
-            <div className="mt-2">
-              <span className="text-sm font-medium">Members: </span>
-              <span className="text-sm text-muted-foreground">{team.participants.join(", ")}</span>
-            </div>
-          )}
-        </div>
-        <div className="mt-4 pt-2">
-          <Link href={`/teams/${team.id}`} className="inline-flex items-center text-sm font-medium text-primary">
-            View details
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   )
 }
 
