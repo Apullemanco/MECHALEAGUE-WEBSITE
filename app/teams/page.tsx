@@ -238,7 +238,8 @@ function TeamCard({ team, isFollowed, onFollowToggle, isLoggedIn }) {
       return "/images/vector-1-team.png"
     }
 
-    return "/placeholder.svg?height=200&width=200&text=" + encodeURIComponent(team.name)
+    // Use the new default team image for all other teams
+    return "/images/team-default.png"
   }
 
   return (
@@ -247,13 +248,13 @@ function TeamCard({ team, isFollowed, onFollowToggle, isLoggedIn }) {
         <div className="flex items-center gap-4">
           <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-muted">
             <Image
-              src={getTeamImage(team) || "/placeholder.svg"}
+              src={getTeamImage(team) || "/images/team-default.png"}
               alt={team.name}
               fill
               className="object-cover"
               onError={(e) => {
-                // If image fails, use a placeholder
-                e.currentTarget.src = `/placeholder.svg?height=200&width=200&text=${encodeURIComponent(team.name)}`
+                // If image fails, use the default team image
+                e.currentTarget.src = "/images/team-default.png"
               }}
             />
           </div>
@@ -335,7 +336,7 @@ const teams = [
     name: "Equipo 2",
     rank: 8,
     members: 3,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
     recentPerformance: "Competed in MechaLeague Founders Championship",
     isNew: false,
     rankingPoints: 9,
@@ -345,7 +346,7 @@ const teams = [
     name: "Equipo 3",
     rank: 4,
     members: 4,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
     recentPerformance: "Competed in MechaLeague Founders Championship",
     isNew: false,
     rankingPoints: 11,
@@ -355,7 +356,7 @@ const teams = [
     name: "Equipo 4",
     rank: 5,
     members: 3,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
     recentPerformance: "Competed in MechaLeague Founders Championship",
     isNew: false,
     rankingPoints: 11,
@@ -365,7 +366,7 @@ const teams = [
     name: "Equipo 5",
     rank: 2,
     members: 3,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
     recentPerformance: "Competed in MechaLeague Founders Championship",
     isNew: false,
     rankingPoints: 12,
@@ -375,7 +376,7 @@ const teams = [
     name: "Equipo 6",
     rank: 11,
     members: 3,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
     recentPerformance: "Competed in MechaLeague Founders Championship",
     isNew: false,
     rankingPoints: 7,
@@ -385,7 +386,7 @@ const teams = [
     name: "Equipo 7",
     rank: 6,
     members: 3,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
     recentPerformance: "Competed in MechaLeague Founders Championship",
     isNew: false,
     rankingPoints: 11,
@@ -395,7 +396,7 @@ const teams = [
     name: "Equipo 8",
     rank: 9,
     members: 3,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
     recentPerformance: "Competed in MechaLeague Founders Championship",
     isNew: false,
     rankingPoints: 9,
@@ -405,7 +406,7 @@ const teams = [
     name: "Equipo 9",
     rank: 14,
     members: 3,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
     recentPerformance: "Competed in MechaLeague Founders Championship",
     isNew: false,
     rankingPoints: 5,
@@ -415,7 +416,7 @@ const teams = [
     name: "Equipo 10",
     rank: 7,
     members: 3,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
     recentPerformance: "Competed in MechaLeague Founders Championship",
     isNew: false,
     rankingPoints: 10,
@@ -425,7 +426,7 @@ const teams = [
     name: "Equipo 11",
     rank: 12,
     members: 3,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
     recentPerformance: "Competed in MechaLeague Founders Championship",
     isNew: false,
     rankingPoints: 7,
@@ -435,7 +436,7 @@ const teams = [
     name: "Equipo 12",
     rank: 1,
     members: 2,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
     recentPerformance: "Winner of MechaLeague Founders Championship",
     isNew: false,
     rankingPoints: 14,
@@ -445,7 +446,7 @@ const teams = [
     name: "Equipo 13",
     rank: 10,
     members: 3,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
     recentPerformance: "Competed in MechaLeague Founders Championship",
     isNew: false,
     rankingPoints: 8,
@@ -455,7 +456,7 @@ const teams = [
     name: "Equipo 14",
     rank: 13,
     members: 3,
-    logo: "/placeholder.svg",
+    logo: "/images/team-default.png",
     recentPerformance: "Competed in MechaLeague Founders Championship",
     isNew: false,
     rankingPoints: 6,

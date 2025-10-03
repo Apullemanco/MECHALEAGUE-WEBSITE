@@ -44,6 +44,14 @@ export default function TeamDetailPage() {
     return ""
   }
 
+  // Function to get team image
+  const getTeamImage = (teamId) => {
+    if (teamId === "team-minus-1") {
+      return "/images/vector-1-team.png"
+    }
+    return "/images/team-default.png"
+  }
+
   return (
     <div className="flex flex-col min-h-screen max-w-[1920px] mx-auto">
       <header className="sticky top-0 z-40 w-full border-b bg-background">
@@ -114,11 +122,12 @@ export default function TeamDetailPage() {
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center text-center">
                     <div className="relative h-32 w-32 rounded-full overflow-hidden border-4 border-muted mb-4 hover:border-primary transition-colors duration-300 transform hover:scale-105">
-                      {team.id === "team-minus-1" ? (
-                        <Image src="/images/vector-1-team.png" alt={team.name} fill className="object-cover" />
-                      ) : (
-                        <Image src="/placeholder.svg" alt={team.name} fill className="object-cover" />
-                      )}
+                      <Image
+                        src={getTeamImage(team.id) || "/placeholder.svg"}
+                        alt={team.name}
+                        fill
+                        className="object-cover"
+                      />
                     </div>
                     <h1 className="text-2xl font-bold">{team.name}</h1>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
@@ -161,7 +170,7 @@ export default function TeamDetailPage() {
                             className="flex items-center gap-2 p-2 rounded-md hover:bg-muted transition-colors duration-200"
                           >
                             <div className="relative h-8 w-8 rounded-full overflow-hidden transform hover:scale-110 transition-transform">
-                              <Image src="/placeholder.svg" alt={member.name} fill className="object-cover" />
+                              <Image src="/images/team-default.png" alt={member.name} fill className="object-cover" />
                             </div>
                             <div>
                               <div className="text-sm font-medium">{member.name}</div>
@@ -321,16 +330,12 @@ export default function TeamDetailPage() {
                               <div className="flex flex-col">
                                 <div className="flex items-center gap-2 mb-2">
                                   <div className="relative h-10 w-10 rounded-full overflow-hidden transform hover:scale-110 transition-transform">
-                                    {team.id === "team-minus-1" ? (
-                                      <Image
-                                        src="/images/vector-1-team.png"
-                                        alt={team.name}
-                                        fill
-                                        className="object-cover"
-                                      />
-                                    ) : (
-                                      <Image src="/placeholder.svg" alt={team.name} fill className="object-cover" />
-                                    )}
+                                    <Image
+                                      src={getTeamImage(team.id) || "/placeholder.svg"}
+                                      alt={team.name}
+                                      fill
+                                      className="object-cover"
+                                    />
                                   </div>
                                   <div>
                                     <div className="font-medium">
@@ -409,7 +414,12 @@ export default function TeamDetailPage() {
                                     </div>
                                   </div>
                                   <div className="relative h-10 w-10 rounded-full overflow-hidden transform hover:scale-110 transition-transform">
-                                    <Image src="/placeholder.svg" alt="Opponents" fill className="object-cover" />
+                                    <Image
+                                      src="/images/team-default.png"
+                                      alt="Opponents"
+                                      fill
+                                      className="object-cover"
+                                    />
                                   </div>
                                 </div>
                               </div>
@@ -443,16 +453,12 @@ export default function TeamDetailPage() {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <div className="relative h-10 w-10 rounded-full overflow-hidden transform hover:scale-110 transition-transform">
-                                    {team.id === "team-minus-1" ? (
-                                      <Image
-                                        src="/images/vector-1-team.png"
-                                        alt={team.name}
-                                        fill
-                                        className="object-cover"
-                                      />
-                                    ) : (
-                                      <Image src="/placeholder.svg" alt={match.name} fill className="object-cover" />
-                                    )}
+                                    <Image
+                                      src={getTeamImage(team.id) || "/placeholder.svg"}
+                                      alt={team.name}
+                                      fill
+                                      className="object-cover"
+                                    />
                                   </div>
                                   <div className="font-medium">{team.name}</div>
                                 </div>
@@ -460,7 +466,12 @@ export default function TeamDetailPage() {
                                 <div className="flex items-center gap-2">
                                   <div className="font-medium">{match.opponent}</div>
                                   <div className="relative h-10 w-10 rounded-full overflow-hidden transform hover:scale-110 transition-transform">
-                                    <Image src="/placeholder.svg" alt={match.opponent} fill className="object-cover" />
+                                    <Image
+                                      src="/images/team-default.png"
+                                      alt={match.opponent}
+                                      fill
+                                      className="object-cover"
+                                    />
                                   </div>
                                 </div>
                               </div>
@@ -542,9 +553,9 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "Ramón", avatar: "/placeholder.svg" },
-      { name: "David Gil", avatar: "/placeholder.svg" },
-      { name: "Victor Udave", avatar: "/placeholder.svg" },
+      { name: "Ramón", avatar: "/images/team-default.png" },
+      { name: "David Gil", avatar: "/images/team-default.png" },
+      { name: "Victor Udave", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
@@ -668,9 +679,9 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "Mia Rocamontes", avatar: "/placeholder.svg" },
-      { name: "Ian Gerardo", avatar: "/placeholder.svg" },
-      { name: "Armando", avatar: "/placeholder.svg" },
+      { name: "Mia Rocamontes", avatar: "/images/team-default.png" },
+      { name: "Ian Gerardo", avatar: "/images/team-default.png" },
+      { name: "Armando", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
@@ -794,10 +805,10 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "Mariana", avatar: "/placeholder.svg" },
-      { name: "Matteo", avatar: "/placeholder.svg" },
-      { name: "Jesús Rodrigo", avatar: "/placeholder.svg" },
-      { name: "Marco", avatar: "/placeholder.svg" },
+      { name: "Mariana", avatar: "/images/team-default.png" },
+      { name: "Matteo", avatar: "/images/team-default.png" },
+      { name: "Jesús Rodrigo", avatar: "/images/team-default.png" },
+      { name: "Marco", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
@@ -924,9 +935,9 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "Patricio", avatar: "/placeholder.svg" },
-      { name: "Avril", avatar: "/placeholder.svg" },
-      { name: "Jaime", avatar: "/placeholder.svg" },
+      { name: "Patricio", avatar: "/images/team-default.png" },
+      { name: "Avril", avatar: "/images/team-default.png" },
+      { name: "Jaime", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
@@ -1050,9 +1061,9 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "Enrique", avatar: "/placeholder.svg" },
-      { name: "Jorge Rivera", avatar: "/placeholder.svg" },
-      { name: "Brian", avatar: "/placeholder.svg" },
+      { name: "Enrique", avatar: "/images/team-default.png" },
+      { name: "Jorge Rivera", avatar: "/images/team-default.png" },
+      { name: "Brian", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
@@ -1176,9 +1187,9 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "Jose Antonio Berlanga", avatar: "/placeholder.svg" },
-      { name: "Edmundo Gómez", avatar: "/placeholder.svg" },
-      { name: "Juan Mena", avatar: "/placeholder.svg" },
+      { name: "Jose Antonio Berlanga", avatar: "/images/team-default.png" },
+      { name: "Edmundo Gómez", avatar: "/images/team-default.png" },
+      { name: "Juan Mena", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
@@ -1302,9 +1313,9 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "Saro", avatar: "/placeholder.svg" },
-      { name: "Pablo", avatar: "/placeholder.svg" },
-      { name: "Sebastián", avatar: "/placeholder.svg" },
+      { name: "Saro", avatar: "/images/team-default.png" },
+      { name: "Pablo", avatar: "/images/team-default.png" },
+      { name: "Sebastián", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
@@ -1428,9 +1439,9 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "Santiago Guerrero", avatar: "/placeholder.svg" },
-      { name: "José Daniel", avatar: "/placeholder.svg" },
-      { name: "Ricardo Ayala", avatar: "/placeholder.svg" },
+      { name: "Santiago Guerrero", avatar: "/images/team-default.png" },
+      { name: "José Daniel", avatar: "/images/team-default.png" },
+      { name: "Ricardo Ayala", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
@@ -1554,9 +1565,9 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "David", avatar: "/placeholder.svg" },
-      { name: "Mariano", avatar: "/placeholder.svg" },
-      { name: "Emiliano Valdés", avatar: "/placeholder.svg" },
+      { name: "David", avatar: "/images/team-default.png" },
+      { name: "Mariano", avatar: "/images/team-default.png" },
+      { name: "Emiliano Valdés", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
@@ -1680,9 +1691,9 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "Mia", avatar: "/placeholder.svg" },
-      { name: "Diego", avatar: "/placeholder.svg" },
-      { name: "Sergio", avatar: "/placeholder.svg" },
+      { name: "Mia", avatar: "/images/team-default.png" },
+      { name: "Diego", avatar: "/images/team-default.png" },
+      { name: "Sergio", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
@@ -1806,9 +1817,9 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "Andrea", avatar: "/placeholder.svg" },
-      { name: "Sara", avatar: "/placeholder.svg" },
-      { name: "Renata", avatar: "/placeholder.svg" },
+      { name: "Andrea", avatar: "/images/team-default.png" },
+      { name: "Sara", avatar: "/images/team-default.png" },
+      { name: "Renata", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
@@ -1932,8 +1943,8 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "Emilio Llamas", avatar: "/placeholder.svg" },
-      { name: "Adolfo Múzquiz", avatar: "/placeholder.svg" },
+      { name: "Emilio Llamas", avatar: "/images/team-default.png" },
+      { name: "Adolfo Múzquiz", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
@@ -2061,9 +2072,9 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "Gonzalo", avatar: "/placeholder.svg" },
-      { name: "Isaac", avatar: "/placeholder.svg" },
-      { name: "Emiliano", avatar: "/placeholder.svg" },
+      { name: "Gonzalo", avatar: "/images/team-default.png" },
+      { name: "Isaac", avatar: "/images/team-default.png" },
+      { name: "Emiliano", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
@@ -2187,9 +2198,9 @@ const teams = [
       tournaments: 1,
     },
     teamMembers: [
-      { name: "Sofia", avatar: "/placeholder.svg" },
-      { name: "Alessia", avatar: "/placeholder.svg" },
-      { name: "Maximiliano", avatar: "/placeholder.svg" },
+      { name: "Sofia", avatar: "/images/team-default.png" },
+      { name: "Alessia", avatar: "/images/team-default.png" },
+      { name: "Maximiliano", avatar: "/images/team-default.png" },
     ],
     tournaments: [
       {
