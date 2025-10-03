@@ -11,15 +11,6 @@ import { Database } from "@/lib/db"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 
-function getTeamImage(teamId: string): string {
-  const imageMap: Record<string, string> = {
-    "team-5": "/images/maxresdefault.jpg",
-    "team-12": "/images/maxresdefault.jpg",
-    "team-minus-1": "/images/vector-1-team.png",
-  }
-  return imageMap[teamId] || "/images/team-default.png"
-}
-
 export default function TeamPage({ params }: { params: { id: string } }) {
   const [team, setTeam] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -68,7 +59,7 @@ export default function TeamPage({ params }: { params: { id: string } }) {
             <CardHeader>
               <div className="flex flex-col md:flex-row gap-6">
                 <Avatar className="h-32 w-32">
-                  <AvatarImage src={getTeamImage(team.id) || "/placeholder.svg"} alt={team.name} />
+                  <AvatarImage src={team.logo || "/placeholder.svg"} alt={team.name} className="object-contain" />
                   <AvatarFallback>{team.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
@@ -160,7 +151,6 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                       {team.members.map((member: any, index: number) => (
                         <div key={index} className="flex items-center gap-4 p-4 border rounded-lg">
                           <Avatar>
-                            <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
                             <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div>

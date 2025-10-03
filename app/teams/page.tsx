@@ -5,23 +5,12 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Search, Trophy } from "lucide-react"
+import { Trophy } from "lucide-react"
 import { Database } from "@/lib/db"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 
-function getTeamImage(teamId: string): string {
-  const imageMap: Record<string, string> = {
-    "team-5": "/images/maxresdefault.jpg",
-    "team-12": "/images/maxresdefault.jpg",
-    "team-minus-1": "/images/vector-1-team.png",
-  }
-  return imageMap[teamId] || "/images/team-default.png"
-}
-
 export default function TeamsPage() {
-  const [searchQuery, setSearchQuery] = useState("")
   const [teams, setTeams] = useState<any[]>([])
 
   useEffect(() => {
@@ -29,12 +18,7 @@ export default function TeamsPage() {
     setTeams(allTeams)
   }, [])
 
-  const filteredTeams = teams.filter((team) => {
-    const matchesSearch = team.name.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesSearch
-  })
-
-  const sortedTeams = [...filteredTeams].sort((a, b) => a.ranking - b.ranking)
+  const sortedTeams = [...teams].sort((a, b) => a.ranking - b.ranking)
 
   return (
     <div className="flex flex-col min-h-screen max-w-[1920px] mx-auto">
@@ -46,18 +30,6 @@ export default function TeamsPage() {
             <p className="text-muted-foreground">Explore all competing teams in MechaLeague</p>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search teams..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {sortedTeams.map((team) => (
               <Link key={team.id} href={`/teams/${team.id}`}>
@@ -65,7 +37,7 @@ export default function TeamsPage() {
                   <CardHeader>
                     <div className="flex items-start justify-between mb-4">
                       <Avatar className="h-16 w-16">
-                        <AvatarImage src={getTeamImage(team.id) || "/placeholder.svg"} alt={team.name} />
+                        <AvatarImage src={team.logo || "/placeholder.svg"} alt={team.name} className="object-contain" />
                         <AvatarFallback>{team.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <Badge variant="secondary">#{team.ranking}</Badge>
@@ -90,12 +62,6 @@ export default function TeamsPage() {
               </Link>
             ))}
           </div>
-
-          {sortedTeams.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No teams found matching your criteria.</p>
-            </div>
-          )}
         </div>
       </main>
       <SiteFooter />
