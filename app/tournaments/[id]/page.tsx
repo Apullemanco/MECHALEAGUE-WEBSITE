@@ -1,22 +1,21 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter, notFound } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, Trophy, Users, ChevronRight, Clock, MapPin, AlertCircle, ChevronLeft, Play } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Calendar, Trophy, Users, Clock, MapPin, AlertCircle, ArrowLeft } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { useMobile } from "@/hooks/use-mobile"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Database } from "@/lib/db"
 
-export default function TournamentPage() {
-  const params = useParams()
+export default function TournamentPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const tournamentId = params.id as string
   const [tournament, setTournament] = useState(null)
@@ -134,6 +133,16 @@ export default function TournamentPage() {
     window.open(videoUrl, "_blank")
   }
 
+  // Fetch tournament data using the Database module
+  useEffect(() => {
+    const tournamentData = Database.getTournamentById(params.id)
+    if (!tournamentData) {
+      notFound()
+    }
+    setTournament(tournamentData)
+    setLoading(false)
+  }, [params.id])
+
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen max-w-[1920px] mx-auto">
@@ -173,1437 +182,152 @@ export default function TournamentPage() {
     )
   }
 
+  const handleRegisterTeam = () => {
+    window.open("https://tally.so/r/3jge7R", "_blank")
+  }
+
+  const handleContactOrganizers = () => {
+    window.open("https://www.instagram.com/mechaleague", "_blank")
+  }
+
   return (
     <div className="flex flex-col min-h-screen max-w-[1920px] mx-auto">
       <SiteHeader />
-      <main className="flex-1 w-full">
-        <div className="relative h-64 md:h-96 w-full">
-          <Image
-            src={tournament.image || "/placeholder.svg"}
-            alt={tournament.name}
-            fill
-            className="object-cover"
-            onError={(e) => {
-              // Si la imagen falla, usar un placeholder
-              e.currentTarget.src = `/placeholder.svg?height=400&width=1600&text=${encodeURIComponent(tournament.name)}`
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-        </div>
+      <main className="flex-1">
+        <div className="container px-4 py-6 md:py-8 max-w-7xl mx-auto">
+          <Button variant="ghost" size="sm" asChild className="mb-6 hover:scale-105 transition-transform">
+            <Link href="/tournaments">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to tournaments
+            </Link>
+          </Button>
 
-        <section className="w-full py-6 md:py-12 bg-muted/30">
-          <div className="container px-4 md:px-6 max-w-[1600px] mx-auto">
-            <div className="mb-6">
-              <Link href="/tournaments" className="flex items-center text-primary hover:underline mb-4">
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Back to tournaments
-              </Link>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-1">
+              <Card className="hover:shadow-lg transition-shadow duration-300">
+                <div className="aspect-video relative overflow-hidden">
+                  <Image
+                    src={tournament.image || "/placeholder.svg"}
+                    alt={tournament.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <h1 className="text-2xl font-bold">{tournament.name}</h1>
+                  </div>
+                  <div className="space-y-3 mt-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span>{tournament.date}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span>{tournament.location}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span>{tournament.teams} teams</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Trophy className="h-4 w-4 text-muted-foreground" />
+                      <span>
+                        Status: <Badge variant="secondary">{tournament.status}</Badge>
+                      </span>
+                    </div>
+                    {tournament.winner && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Trophy className="h-4 w-4 text-yellow-500" />
+                        <span>
+                          Winner: <strong>{tournament.winner}</strong>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <Separator className="my-4" />
+                  <div>
+                    <h3 className="font-medium mb-2">About</h3>
+                    <p className="text-sm text-muted-foreground">{tournament.description}</p>
+                  </div>
+                </CardContent>
+              </Card>
 
-              <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
-                <div>
-                  <h1 className="text-3xl md:text-4xl font-bold">{tournament.name}</h1>
-                  <p className="text-lg text-muted-foreground">{tournament.description}</p>
-                </div>
-                {isLoggedIn && (
-                  <Button
-                    variant={isFollowing ? "default" : "outline"}
-                    className="w-full md:w-auto"
-                    onClick={handleFollowToggle}
-                  >
-                    {isFollowing ? "Following" : "Follow Tournament"}
-                  </Button>
-                )}
-              </div>
-
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Date</p>
-                    <p className="font-medium">{tournament.date}</p>
+              <Card className="mt-6 hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                  <CardTitle>Tournament Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {tournament.status !== "completed" && (
+                      <Button className="w-full" onClick={handleRegisterTeam}>
+                        Register Your Team
+                      </Button>
+                    )}
+                    <Button variant="outline" className="w-full bg-transparent" onClick={handleContactOrganizers}>
+                      Contact Organizers
+                    </Button>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Location</p>
-                    <p className="font-medium">Saltillo, Coahuila, Mexico</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Teams</p>
-                    <p className="font-medium">14 teams</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Winner</p>
-                    <p className="font-medium">{tournament.winner || "TBD"}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <h3 className="font-medium text-lg mb-2">Tournament format</h3>
-                <p className="text-muted-foreground">
-                  Teams compete in 3v3 alliances (Blue Alliance vs Red Alliance) in a series of qualification matches.
-                </p>
-              </div>
+                </CardContent>
+              </Card>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-8">
-              <div className="flex-1">
-                <Tabs defaultValue="overview" className="w-full">
-                  <TabsList className="grid w-full max-w-md grid-cols-3">
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="teams">Teams</TabsTrigger>
-                    <TabsTrigger value="matches">Matches</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="overview" className="mt-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Tournament Details</CardTitle>
-                        <CardDescription>Everything you need to know about {tournament.name}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="flex items-start gap-3">
-                            <Calendar className="h-5 w-5 text-primary mt-0.5" />
-                            <div>
-                              <h3 className="font-medium">Date</h3>
-                              <p className="text-muted-foreground">{tournament.date}</p>
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tournament Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-semibold mb-2">Tournament Format</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Teams compete in 3v3 alliances (Blue Alliance vs Red Alliance) in a series of qualification
+                        matches followed by elimination rounds.
+                      </p>
+                    </div>
+                    {tournament.status === "completed" && (
+                      <div>
+                        <h3 className="font-semibold mb-2">Results</h3>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <Trophy className="h-5 w-5 text-yellow-500" />
+                              <span className="font-medium">1st Place</span>
                             </div>
+                            <span className="font-semibold">{tournament.winner}</span>
                           </div>
-                          <div className="flex items-start gap-3">
-                            <Users className="h-5 w-5 text-primary mt-0.5" />
-                            <div>
-                              <h3 className="font-medium">Teams</h3>
-                              <p className="text-muted-foreground">{tournament.teams} teams participating</p>
+                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <Trophy className="h-5 w-5 text-gray-400" />
+                              <span className="font-medium">2nd Place</span>
                             </div>
+                            <span className="font-semibold">Equipo 5</span>
                           </div>
-                          <div className="flex items-start gap-3">
-                            <Clock className="h-5 w-5 text-primary mt-0.5" />
-                            <div>
-                              <h3 className="font-medium">Status</h3>
-                              <p className="text-muted-foreground capitalize">{tournament.status}</p>
+                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <Trophy className="h-5 w-5 text-orange-600" />
+                              <span className="font-medium">3rd Place</span>
                             </div>
-                          </div>
-                          {tournament.winner && (
-                            <div className="flex items-start gap-3">
-                              <Trophy className="h-5 w-5 text-primary mt-0.5" />
-                              <div>
-                                <h3 className="font-medium">Winner</h3>
-                                <p className="text-muted-foreground">{tournament.winner}</p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div>
-                          <h3 className="font-medium mb-2">Description</h3>
-                          <p className="text-muted-foreground">
-                            {tournament.longDescription ||
-                              `${tournament.name} is a premier MechaLeague tournament featuring the best teams competing for glory and recognition. Join us for an exciting competition showcasing strategy, teamwork, and innovation.`}
-                          </p>
-                        </div>
-
-                        <div>
-                          <h3 className="font-medium mb-2">Rules</h3>
-                          <ul className="list-disc pl-5 text-muted-foreground space-y-1">
-                            <li>Teams must have between 2-5 members</li>
-                            <li>All participants must be registered MechaLeague members</li>
-                            <li>Matches will be played according to standard MechaLeague rules</li>
-                            <li>All decisions by tournament officials are final</li>
-                          </ul>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="mt-6">
-                      <CardHeader>
-                        <CardTitle>Registered Teams</CardTitle>
-                        <CardDescription>
-                          Teams participating in this tournament with their ranking points
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Rank</TableHead>
-                              <TableHead>Team</TableHead>
-                              <TableHead>Ranking Points</TableHead>
-                              <TableHead className="text-right">Status</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {tournament.registeredTeams && tournament.registeredTeams.length > 0 ? (
-                              tournament.registeredTeams
-                                .sort((a, b) => b.rankingPoints - a.rankingPoints)
-                                .map((team, index) => (
-                                  <TableRow key={team.id}>
-                                    <TableCell className="font-medium">{index + 1}</TableCell>
-                                    <TableCell>
-                                      <div className="flex items-center gap-2">
-                                        <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                          <Image
-                                            src={team.image || "/placeholder.svg"}
-                                            alt={team.name}
-                                            fill
-                                            className="object-cover"
-                                          />
-                                        </div>
-                                        <Link href={`/teams/${team.id}`} className="hover:underline">
-                                          {team.name}
-                                        </Link>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell>{team.rankingPoints}</TableCell>
-                                    <TableCell className="text-right">
-                                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                        Confirmed
-                                      </Badge>
-                                    </TableCell>
-                                  </TableRow>
-                                ))
-                            ) : (
-                              <TableRow>
-                                <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
-                                  No teams registered yet
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </TableBody>
-                        </Table>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="teams" className="mt-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Alliance Selection</CardTitle>
-                        <CardDescription>Teams grouped into alliances for the elimination rounds</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <Card className="border">
-                            <CardHeader className="pb-2">
-                              <CardTitle className="text-lg">Alliance 1</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                                    1
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                      <Image src="/placeholder.svg" alt="Team 12" fill className="object-cover" />
-                                    </div>
-                                    <Link href="/teams/team-12" className="hover:underline">
-                                      Team 12
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                                    2
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                      <Image src="/placeholder.svg" alt="Team 7" fill className="object-cover" />
-                                    </div>
-                                    <Link href="/teams/team-7" className="hover:underline">
-                                      Team 7
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                                    3
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                      <Image src="/placeholder.svg" alt="Team 10" fill className="object-cover" />
-                                    </div>
-                                    <Link href="/teams/team-10" className="hover:underline">
-                                      Team 10
-                                    </Link>
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          <Card className="border">
-                            <CardHeader className="pb-2">
-                              <CardTitle className="text-lg">Alliance 2</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                                    1
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                      <Image src="/placeholder.svg" alt="Team 5" fill className="object-cover" />
-                                    </div>
-                                    <Link href="/teams/team-5" className="hover:underline">
-                                      Team 5
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                                    2
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                      <Image src="/placeholder.svg" alt="Team 13" fill className="object-cover" />
-                                    </div>
-                                    <Link href="/teams/team-13" className="hover:underline">
-                                      Team 13
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                                    3
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                      <Image src="/placeholder.svg" alt="Team 4" fill className="object-cover" />
-                                    </div>
-                                    <Link href="/teams/team-4" className="hover:underline">
-                                      Team 4
-                                    </Link>
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          <Card className="border">
-                            <CardHeader className="pb-2">
-                              <CardTitle className="text-lg">Alliance 3</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                                    1
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                      <Image
-                                        src="/images/vector-1-team.png"
-                                        alt="Vector -1"
-                                        fill
-                                        className="object-cover"
-                                      />
-                                    </div>
-                                    <Link href="/teams/team-minus-1" className="hover:underline">
-                                      Vector -1
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                                    2
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                      <Image src="/placeholder.svg" alt="Team 11" fill className="object-cover" />
-                                    </div>
-                                    <Link href="/teams/team-11" className="hover:underline">
-                                      Team 11
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                                    3
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                      <Image src="/placeholder.svg" alt="Team 14" fill className="object-cover" />
-                                    </div>
-                                    <Link href="/teams/team-14" className="hover:underline">
-                                      Team 14
-                                    </Link>
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          <Card className="border">
-                            <CardHeader className="pb-2">
-                              <CardTitle className="text-lg">Alliance 4</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                                    1
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                      <Image src="/placeholder.svg" alt="Team 3" fill className="object-cover" />
-                                    </div>
-                                    <Link href="/teams/team-3" className="hover:underline">
-                                      Team 3
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                                    2
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                      <Image src="/placeholder.svg" alt="Team 6" fill className="object-cover" />
-                                    </div>
-                                    <Link href="/teams/team-6" className="hover:underline">
-                                      Team 6
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                                    3
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                      <Image src="/placeholder.svg" alt="Team 8" fill className="object-cover" />
-                                    </div>
-                                    <Link href="/teams/team-8" className="hover:underline">
-                                      Team 8
-                                    </Link>
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
-
-                        <div className="mt-8">
-                          <h3 className="text-xl font-bold mb-4">All Teams</h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {tournament.registeredTeams && tournament.registeredTeams.length > 0 ? (
-                              tournament.registeredTeams
-                                .sort((a, b) => b.rankingPoints - a.rankingPoints)
-                                .map((team) => (
-                                  <Link key={team.id} href={`/teams/${team.id}`}>
-                                    <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted transition-colors">
-                                      <div className="relative h-12 w-12 rounded-full overflow-hidden border-2 border-muted">
-                                        <Image
-                                          src={team.image || "/placeholder.svg"}
-                                          alt={team.name}
-                                          fill
-                                          className="object-cover"
-                                          onError={(e) => {
-                                            e.currentTarget.src = `/placeholder.svg?height=100&width=100&text=${encodeURIComponent(
-                                              team.name.charAt(0),
-                                            )}`
-                                          }}
-                                        />
-                                      </div>
-                                      <div>
-                                        <h3 className="font-medium">{team.name}</h3>
-                                        <p className="text-sm text-muted-foreground">
-                                          Ranking Points: {team.rankingPoints}
-                                        </p>
-                                      </div>
-                                      <ChevronRight className="h-5 w-5 text-muted-foreground ml-auto" />
-                                    </div>
-                                  </Link>
-                                ))
-                            ) : (
-                              <div className="col-span-2 text-center py-6">
-                                <p className="text-muted-foreground">No teams registered for this tournament yet.</p>
-                              </div>
-                            )}
+                            <span className="font-semibold">Vector -1</span>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="matches" className="mt-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Tournament Matches</CardTitle>
-                        <CardDescription>All matches for {tournament.name}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex border-b mb-4">
-                          <div
-                            className={`flex-1 text-center py-2 px-4 ${activeMatchTab === "qualification" ? "border-b-2 border-primary font-medium" : "text-muted-foreground"}`}
-                            onClick={() => setActiveMatchTab("qualification")}
-                            style={{ cursor: "pointer" }}
-                          >
-                            Qualification
-                          </div>
-                          <div
-                            className={`flex-1 text-center py-2 px-4 ${activeMatchTab === "playoff" ? "border-b-2 border-primary font-medium" : "text-muted-foreground"}`}
-                            onClick={() => setActiveMatchTab("playoff")}
-                            style={{ cursor: "pointer" }}
-                          >
-                            Playoff
-                          </div>
-                          <div
-                            className={`flex-1 text-center py-2 px-4 ${activeMatchTab === "semifinal" ? "border-b-2 border-primary font-medium" : "text-muted-foreground"}`}
-                            onClick={() => setActiveMatchTab("semifinal")}
-                            style={{ cursor: "pointer" }}
-                          >
-                            Semifinal
-                          </div>
-                          <div
-                            className={`flex-1 text-center py-2 px-4 ${activeMatchTab === "final" ? "border-b-2 border-primary font-medium" : "text-muted-foreground"}`}
-                            onClick={() => setActiveMatchTab("final")}
-                            style={{ cursor: "pointer" }}
-                          >
-                            Final
-                          </div>
-                        </div>
-
-                        {activeMatchTab === "qualification" && (
-                          <div className="mb-6">
-                            <h3 className="text-xl font-bold mb-4">Qualification matches</h3>
-
-                            <div className="overflow-x-auto">
-                              <table className="w-full">
-                                <thead>
-                                  <tr className="border-b">
-                                    <th className="text-left py-2 px-4 font-medium">Match</th>
-                                    <th className="text-left py-2 px-4 font-medium">Blue Alliance</th>
-                                    <th className="text-center py-2 px-4 font-medium">Score</th>
-                                    <th className="text-left py-2 px-4 font-medium">Red Alliance</th>
-                                    <th className="text-right py-2 px-4 font-medium">Video</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q1</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Vector -1
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 11
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 5
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">12</span> -{" "}
-                                      <span className="font-bold text-red-600">8</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 3
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 13
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 9
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/Obm0N51Wumg")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q2</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 14
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 6
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 7
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">8</span> -{" "}
-                                      <span className="font-bold text-red-600">13</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 10
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 2
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 8
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/DeONBCciLps")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q3</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 2
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 8
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 10
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">11</span> -{" "}
-                                      <span className="font-bold text-red-600">17</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 4
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Vector -1
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 12
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/CUrbMQkRj50")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q4</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 11
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 14
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 6
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">10</span> -{" "}
-                                      <span className="font-bold text-red-600">14</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 12
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 3
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 13
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/8MmfqLjJIVs")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q5</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 4
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 5
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 13
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">16</span> -{" "}
-                                      <span className="font-bold text-red-600">13</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 9
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 3
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 7
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/WMheoayhL6o")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q6</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Vector -1
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 6
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 9
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">6</span> -{" "}
-                                      <span className="font-bold text-red-600">14</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 2
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 14
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 11
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/NWa8xF2ueVQ")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q7</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 4
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 12
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 8
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">10</span> -{" "}
-                                      <span className="font-bold text-red-600">16</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 7
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 5
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 10
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/w9-nNmC9-ag")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q8</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 3
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 11
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 6
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">18</span> -{" "}
-                                      <span className="font-bold text-red-600">14</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 9
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 2
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 8
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/2rxa1ujiWs8")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q9</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 7
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 13
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 2
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">15</span> -{" "}
-                                      <span className="font-bold text-red-600">12</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 8
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 14
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 5
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/xOrD6k-lfnk")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q10</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 10
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 3
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 9
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">13</span> -{" "}
-                                      <span className="font-bold text-red-600">19</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Vector -1
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 12
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 6
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/C8QpXf0N1Qo")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q11</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 5
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 8
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 11
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">21</span> -{" "}
-                                      <span className="font-bold text-red-600">17</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 4
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 10
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 14
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/S3lr8EuuUao")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q12</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 12
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 9
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 7
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">24</span> -{" "}
-                                      <span className="font-bold text-red-600">11</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 13
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 6
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 2
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/dlmkxlDAzQA")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q13</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Vector -1
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 4
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 14
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">19</span> -{" "}
-                                      <span className="font-bold text-red-600">15</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 11
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 3
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 10
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/DCxu1iRa1Ys")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">Q14</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 13
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 8
-                                        </span>
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Team 3
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">14</span> -{" "}
-                                      <span className="font-bold text-red-600">22</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 12
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 7
-                                        </span>
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Team 5
-                                        </span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/Dp9TmhJuExs")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        )}
-
-                        {activeMatchTab === "playoff" && (
-                          <div className="mb-6">
-                            <h3 className="text-xl font-bold mb-4">Playoff matches</h3>
-
-                            <div className="overflow-x-auto">
-                              <table className="w-full">
-                                <thead>
-                                  <tr className="border-b">
-                                    <th className="text-left py-2 px-4 font-medium">Match</th>
-                                    <th className="text-left py-2 px-4 font-medium">Blue Alliance</th>
-                                    <th className="text-center py-2 px-4 font-medium">Score</th>
-                                    <th className="text-left py-2 px-4 font-medium">Red Alliance</th>
-                                    <th className="text-right py-2 px-4 font-medium">Video</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">M1</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Alliance 4
-                                        </span>
-                                        <div className="mt-2 text-xs text-muted-foreground">Team 3, Team 6, Team 8</div>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">12</span> -{" "}
-                                      <span className="font-bold text-red-600">14</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Alliance 1
-                                        </span>
-                                        <div className="mt-2 text-xs text-muted-foreground">
-                                          Team 12, Team 7, Team 10
-                                        </div>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/1BpFKWQFNFE")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">M2</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Alliance 3
-                                        </span>
-                                        <div className="mt-2 text-xs text-muted-foreground">
-                                          Vector -1, Team 11, Team 14
-                                        </div>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">9</span> -{" "}
-                                      <span className="font-bold text-red-600">13</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Alliance 2
-                                        </span>
-                                        <div className="mt-2 text-xs text-muted-foreground">
-                                          Team 5, Team 13, Team 4
-                                        </div>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/ghzNZhRUyqA")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        )}
-
-                        {activeMatchTab === "semifinal" && (
-                          <div className="mb-6">
-                            <h3 className="text-xl font-bold mb-4">Semifinal matches</h3>
-
-                            <div className="overflow-x-auto">
-                              <table className="w-full">
-                                <thead>
-                                  <tr className="border-b">
-                                    <th className="text-left py-2 px-4 font-medium">Match</th>
-                                    <th className="text-left py-2 px-4 font-medium">Blue Alliance</th>
-                                    <th className="text-center py-2 px-4 font-medium">Score</th>
-                                    <th className="text-left py-2 px-4 font-medium">Red Alliance</th>
-                                    <th className="text-right py-2 px-4 font-medium">Video</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">S1</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Alliance 2
-                                        </span>
-                                        <div className="mt-2 text-xs text-muted-foreground">
-                                          Team 5, Team 13, Team 4
-                                        </div>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">12</span> -{" "}
-                                      <span className="font-bold text-red-600">11</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Alliance 1
-                                        </span>
-                                        <div className="mt-2 text-xs text-muted-foreground">
-                                          Team 12, Team 7, Team 10
-                                        </div>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/i8yOsdfUjm4")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">S2</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Alliance 4
-                                        </span>
-                                        <div className="mt-2 text-xs text-muted-foreground">Team 3, Team 6, Team 8</div>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">18</span> -{" "}
-                                      <span className="font-bold text-red-600">4</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Alliance 3
-                                        </span>
-                                        <div className="mt-2 text-xs text-muted-foreground">
-                                          Vector -1, Team 11, Team 14
-                                        </div>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/MzOj5RB1DNA")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        )}
-
-                        {activeMatchTab === "final" && (
-                          <div className="mb-6">
-                            <h3 className="text-xl font-bold mb-4">Final match</h3>
-
-                            <div className="overflow-x-auto">
-                              <table className="w-full">
-                                <thead>
-                                  <tr className="border-b">
-                                    <th className="text-left py-2 px-4 font-medium">Match</th>
-                                    <th className="text-left py-2 px-4 font-medium">Blue Alliance</th>
-                                    <th className="text-center py-2 px-4 font-medium">Score</th>
-                                    <th className="text-left py-2 px-4 font-medium">Red Alliance</th>
-                                    <th className="text-right py-2 px-4 font-medium">Video</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr className="border-b">
-                                    <td className="py-3 px-4">FINAL</td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                          Alliance 4
-                                        </span>
-                                        <div className="mt-2 text-xs text-muted-foreground">Team 3, Team 6, Team 8</div>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                      <span className="font-bold">20</span> -{" "}
-                                      <span className="font-bold text-red-600">13</span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex flex-wrap gap-2">
-                                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
-                                          Alliance 2
-                                        </span>
-                                        <div className="mt-2 text-xs text-muted-foreground">
-                                          Team 5, Team 13, Team 4
-                                        </div>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center"
-                                        onClick={() => handleWatchVideo("https://youtu.be/r6xYP0zGU_w")}
-                                      >
-                                        <span className="mr-1">Watch</span>
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
-              </div>
-
-              <div className="w-full md:w-80">
-                <div className="space-y-4 sticky top-20">
-                  <Card>
-                    <CardContent className="p-6">
-                      <h3 className="font-medium text-lg mb-4">Tournament Actions</h3>
-                      <div className="space-y-3">
-                        {tournament.status === "upcoming" && !isRegistered ? (
-                          <Button className="w-full" onClick={handleRegister}>
-                            Register for Tournament
-                          </Button>
-                        ) : isRegistered ? (
-                          <Button className="w-full" variant="outline" disabled>
-                            Registered
-                          </Button>
-                        ) : (
-                          <Button className="w-full" disabled>
-                            Registration Closed
-                          </Button>
-                        )}
-                        <Button
-                          variant={isFollowing ? "default" : "outline"}
-                          className="w-full"
-                          onClick={handleFollowToggle}
-                        >
-                          {isFollowing ? "Following" : "Follow Tournament"}
-                        </Button>
-                        <Button variant="outline" className="w-full" asChild>
-                          <Link href="/contact">Contact Organizers</Link>
-                        </Button>
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+                    )}
+                    <div className="mt-6 p-4 bg-muted/30 rounded-md">
+                      <h3 className="font-medium mb-2">Note</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {tournament.status === "completed"
+                          ? "This tournament has concluded. Check back for future tournaments!"
+                          : "Tournament details are subject to change. Please check back for updates."}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </section>
+        </div>
       </main>
       <SiteFooter />
     </div>

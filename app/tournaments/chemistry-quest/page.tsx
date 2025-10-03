@@ -2,8 +2,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Calendar, MapPin, Trophy, Users, Heart } from "lucide-react"
-import { useState, useEffect } from "react"
+import { ArrowLeft, Calendar, MapPin, Trophy, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,23 +12,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
-import { useToast } from "@/hooks/use-toast"
-import { Database } from "@/lib/db"
 
 export default function ChemistryQuestPage() {
-  const { toast } = useToast()
   const router = useRouter()
   const tournament = chemistryQuestTournament
-  const [isFollowing, setIsFollowing] = useState(false)
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const currentUser = Database.getCurrentUser()
-      if (currentUser) {
-        setIsFollowing(currentUser.followedTournaments.includes(tournament.id))
-      }
-    }
-  }, [tournament.id])
 
   const getTeamId = (teamName) => {
     if (teamName === "Vector -1") return "team-minus-1"
@@ -46,66 +32,6 @@ export default function ChemistryQuestPage() {
 
   const handleContactOrganizers = () => {
     window.open("https://www.instagram.com/mechaleague", "_blank")
-  }
-
-  const handleFollowTournament = () => {
-    if (typeof window === "undefined") {
-      return
-    }
-
-    const userLoggedIn = localStorage.getItem("userLoggedIn")
-    if (userLoggedIn !== "true") {
-      localStorage.setItem("redirectAfterLogin", "/tournaments/chemistry-quest")
-      router.push("/register")
-      return
-    }
-
-    const currentUser = Database.getCurrentUser()
-    if (!currentUser) {
-      router.push("/register")
-      return
-    }
-
-    const isFollowed = currentUser.followedTournaments.includes(tournament.id)
-
-    try {
-      const updatedFollowedTournaments = isFollowed
-        ? currentUser.followedTournaments.filter((id) => id !== tournament.id)
-        : [...currentUser.followedTournaments, tournament.id]
-
-      Database.updateUser(currentUser.id, {
-        followedTournaments: updatedFollowedTournaments,
-      })
-
-      setIsFollowing(!isFollowed)
-
-      const notifications = JSON.parse(localStorage.getItem("notifications") || "[]")
-      notifications.push({
-        id: Date.now(),
-        type: isFollowed ? "tournament_unfollowed" : "tournament_followed",
-        title: isFollowed ? "Tournament Unfollowed" : "Tournament Followed",
-        description: isFollowed
-          ? `You are no longer following ${tournament.name}`
-          : `You are now following ${tournament.name}`,
-        date: new Date().toISOString(),
-        read: false,
-      })
-      localStorage.setItem("notifications", JSON.stringify(notifications))
-
-      toast({
-        title: isFollowed ? "Tournament unfollowed" : "Tournament followed",
-        description: isFollowed
-          ? "You will no longer receive updates about this tournament"
-          : "You will receive updates about this tournament",
-      })
-    } catch (error) {
-      console.error("Error following tournament:", error)
-      toast({
-        title: "Error",
-        description: "Failed to update tournament following status",
-        variant: "destructive",
-      })
-    }
   }
 
   return (
@@ -134,15 +60,6 @@ export default function ChemistryQuestPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">{tournament.name}</h1>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleFollowTournament}
-                      title="Follow tournament"
-                      className={isFollowing ? "text-red-500" : ""}
-                    >
-                      <Heart className={`h-5 w-5 ${isFollowing ? "fill-current" : ""}`} />
-                    </Button>
                   </div>
                   <div className="text-sm text-muted-foreground mb-3">Presented by Prepa Tec</div>
                   <div className="space-y-3 mt-4">
@@ -216,13 +133,6 @@ export default function ChemistryQuestPage() {
                   <div className="space-y-3">
                     <Button className="w-full" onClick={handleRegisterTeam}>
                       Register Your Team
-                    </Button>
-                    <Button
-                      variant={isFollowing ? "default" : "outline"}
-                      className="w-full"
-                      onClick={handleFollowTournament}
-                    >
-                      {isFollowing ? "Following" : "Follow Tournament"}
                     </Button>
                     <Button variant="outline" className="w-full bg-transparent" onClick={handleContactOrganizers}>
                       Contact Organizers

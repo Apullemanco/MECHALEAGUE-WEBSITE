@@ -1,206 +1,436 @@
-// Simple client-side database using localStorage
-// In a real application, this would be replaced with a proper backend database
-
-// User types
-export interface User {
+interface Team {
   id: string
   name: string
-  email: string
-  password?: string // Not stored for OAuth users
-  avatar?: string
-  authProvider: "email" | "google"
-  followedTeams: string[]
-  followedTournaments: string[]
-  createdAt: string
-  updatedAt: string
+  location: string
+  founded: string
+  logo: string
+  members: TeamMember[]
+  achievements: Achievement[]
+  stats: TeamStats
+  wins: number
+  losses: number
+  ranking: number
+  region: string
 }
 
-// Database class to handle all operations
-export class Database {
-  // Get all users
-  static getUsers(): User[] {
-    // Check if we're in a browser environment
-    if (typeof window === "undefined") {
-      return []
-    }
+interface TeamMember {
+  name: string
+  avatar: string
+}
 
-    const users = localStorage.getItem("mechaleague_users")
-    return users ? JSON.parse(users) : []
+interface Achievement {
+  title: string
+  date: string
+  description: string
+}
+
+interface TeamStats {
+  wins: number
+  losses: number
+  draws: number
+  rankingPoints: number
+}
+
+interface Tournament {
+  id: string
+  name: string
+  date: string
+  location: string
+  participants: number
+  status: "upcoming" | "ongoing" | "completed"
+  image: string
+  winner?: string
+  description?: string
+  teams?: number
+  logo?: string
+}
+
+export type { Team, Tournament }
+
+class DatabaseClass {
+  private teams: Team[] = [
+    {
+      id: "team-12",
+      name: "Equipo 12",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/team-default.png",
+      wins: 18,
+      losses: 5,
+      ranking: 1,
+      members: [
+        {
+          name: "Emilio Llamas",
+          avatar: "/images/team-default.png",
+        },
+        {
+          name: "Adolfo Múzquiz",
+          avatar: "/images/team-default.png",
+        },
+      ],
+      achievements: [
+        {
+          title: "Founders Championship - Champions",
+          date: "November 2024",
+          description: "Won the inaugural MechaLeague Founders Championship",
+        },
+        {
+          title: "Excellence Award",
+          date: "November 2024",
+          description: "Awarded for outstanding performance throughout the tournament",
+        },
+      ],
+      stats: {
+        wins: 18,
+        losses: 5,
+        draws: 0,
+        rankingPoints: 287,
+      },
+    },
+    {
+      id: "team-5",
+      name: "Equipo 5",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/team-default.png",
+      wins: 12,
+      losses: 6,
+      ranking: 2,
+      members: [
+        {
+          name: "Enrique",
+          avatar: "/images/team-default.png",
+        },
+        {
+          name: "Jorge Rivera",
+          avatar: "/images/team-default.png",
+        },
+        {
+          name: "Brian",
+          avatar: "/images/team-default.png",
+        },
+      ],
+      achievements: [
+        {
+          title: "Founders Championship - 2nd Place",
+          date: "November 2024",
+          description: "Strong performance in the tournament",
+        },
+      ],
+      stats: {
+        wins: 12,
+        losses: 6,
+        draws: 0,
+        rankingPoints: 200,
+      },
+    },
+    {
+      id: "team-minus-1",
+      name: "Vector -1",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/vector-1-team.png",
+      wins: 15,
+      losses: 8,
+      ranking: 3,
+      members: [
+        {
+          name: "Ramón",
+          avatar: "/images/team-default.png",
+        },
+        {
+          name: "David Gil",
+          avatar: "/images/team-default.png",
+        },
+        {
+          name: "Victor Udave",
+          avatar: "/images/team-default.png",
+        },
+      ],
+      achievements: [
+        {
+          title: "Founders Championship - 3rd Place",
+          date: "November 2024",
+          description: "Secured 3rd place in the inaugural MechaLeague tournament",
+        },
+        {
+          title: "Innovation Award",
+          date: "November 2024",
+          description: "Recognized for innovative robot design and strategy",
+        },
+      ],
+      stats: {
+        wins: 15,
+        losses: 8,
+        draws: 2,
+        rankingPoints: 245,
+      },
+    },
+    {
+      id: "team-3",
+      name: "Equipo 3",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/team-default.png",
+      wins: 11,
+      losses: 12,
+      ranking: 4,
+      members: [],
+      achievements: [],
+      stats: {
+        wins: 11,
+        losses: 12,
+        draws: 0,
+        rankingPoints: 0,
+      },
+    },
+    {
+      id: "team-4",
+      name: "Equipo 4",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/team-default.png",
+      wins: 11,
+      losses: 12,
+      ranking: 5,
+      members: [],
+      achievements: [],
+      stats: {
+        wins: 11,
+        losses: 12,
+        draws: 0,
+        rankingPoints: 0,
+      },
+    },
+    {
+      id: "team-7",
+      name: "Equipo 7",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/team-default.png",
+      wins: 11,
+      losses: 12,
+      ranking: 6,
+      members: [],
+      achievements: [],
+      stats: {
+        wins: 11,
+        losses: 12,
+        draws: 0,
+        rankingPoints: 0,
+      },
+    },
+    {
+      id: "team-10",
+      name: "Equipo 10",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/team-default.png",
+      wins: 10,
+      losses: 13,
+      ranking: 7,
+      members: [],
+      achievements: [],
+      stats: {
+        wins: 10,
+        losses: 13,
+        draws: 0,
+        rankingPoints: 0,
+      },
+    },
+    {
+      id: "team-2",
+      name: "Equipo 2",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/team-default.png",
+      wins: 9,
+      losses: 14,
+      ranking: 8,
+      members: [],
+      achievements: [],
+      stats: {
+        wins: 9,
+        losses: 14,
+        draws: 0,
+        rankingPoints: 0,
+      },
+    },
+    {
+      id: "team-8",
+      name: "Equipo 8",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/team-default.png",
+      wins: 9,
+      losses: 14,
+      ranking: 9,
+      members: [],
+      achievements: [],
+      stats: {
+        wins: 9,
+        losses: 14,
+        draws: 0,
+        rankingPoints: 0,
+      },
+    },
+    {
+      id: "team-13",
+      name: "Equipo 13",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/team-default.png",
+      wins: 8,
+      losses: 15,
+      ranking: 10,
+      members: [],
+      achievements: [],
+      stats: {
+        wins: 8,
+        losses: 15,
+        draws: 0,
+        rankingPoints: 0,
+      },
+    },
+    {
+      id: "team-6",
+      name: "Equipo 6",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/team-default.png",
+      wins: 7,
+      losses: 16,
+      ranking: 11,
+      members: [],
+      achievements: [],
+      stats: {
+        wins: 7,
+        losses: 16,
+        draws: 0,
+        rankingPoints: 0,
+      },
+    },
+    {
+      id: "team-11",
+      name: "Equipo 11",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/team-default.png",
+      wins: 7,
+      losses: 16,
+      ranking: 12,
+      members: [],
+      achievements: [],
+      stats: {
+        wins: 7,
+        losses: 16,
+        draws: 0,
+        rankingPoints: 0,
+      },
+    },
+    {
+      id: "team-14",
+      name: "Equipo 14",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/team-default.png",
+      wins: 6,
+      losses: 17,
+      ranking: 13,
+      members: [],
+      achievements: [],
+      stats: {
+        wins: 6,
+        losses: 17,
+        draws: 0,
+        rankingPoints: 0,
+      },
+    },
+    {
+      id: "team-9",
+      name: "Equipo 9",
+      location: "Saltillo, Coahuila",
+      region: "Norte",
+      founded: "2024",
+      logo: "/images/team-default.png",
+      wins: 5,
+      losses: 18,
+      ranking: 14,
+      members: [],
+      achievements: [],
+      stats: {
+        wins: 5,
+        losses: 18,
+        draws: 0,
+        rankingPoints: 0,
+      },
+    },
+  ]
+
+  private tournaments: Tournament[] = [
+    {
+      id: "founders-championship",
+      name: "MechaLeague Founders Championship",
+      date: "November 21, 2024",
+      location: "Saltillo, Coahuila, Mexico",
+      participants: 14,
+      status: "completed",
+      winner: "Equipo 12",
+      image: "/images/founders-championship.png",
+      logo: "/images/founders-championship.png",
+      description: "The inaugural MechaLeague tournament featuring the best teams from across Mexico.",
+      teams: 14,
+    },
+    {
+      id: "chemistry-quest",
+      name: "Chemistry Quest",
+      date: "TBD",
+      location: "Saltillo, Coahuila, Mexico",
+      participants: 16,
+      status: "upcoming",
+      image: "/images/chemistry-quest-banner.png",
+      logo: "/images/chemistry-quest-banner.png",
+      description: "A special tournament focused on chemistry-themed challenges and innovation.",
+      teams: 16,
+    },
+  ]
+
+  getTeam(teamId: string): Team | null {
+    return this.teams.find((team) => team.id === teamId) || null
   }
 
-  // Get user by ID
-  static getUserById(id: string): User | null {
-    const users = this.getUsers()
-    return users.find((user) => user.id === id) || null
+  getTeamById(teamId: string): Team | null {
+    return this.getTeam(teamId)
   }
 
-  // Get user by email
-  static getUserByEmail(email: string): User | null {
-    const users = this.getUsers()
-    return users.find((user) => user.email === email) || null
+  getAllTeams(): Team[] {
+    return this.teams
   }
 
-  // Create new user
-  static createUser(user: Omit<User, "id" | "createdAt" | "updatedAt">): User {
-    const users = this.getUsers()
-
-    // Check if user already exists
-    if (users.some((u) => u.email === user.email)) {
-      throw new Error("User with this email already exists")
-    }
-
-    const newUser: User = {
-      ...user,
-      id: `user_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-
-    users.push(newUser)
-    localStorage.setItem("mechaleague_users", JSON.stringify(users))
-
-    return newUser
+  getTournament(tournamentId: string): Tournament | null {
+    return this.tournaments.find((tournament) => tournament.id === tournamentId) || null
   }
 
-  // Update user
-  static updateUser(id: string, updates: Partial<User>): User {
-    const users = this.getUsers()
-    const userIndex = users.findIndex((user) => user.id === id)
-
-    if (userIndex === -1) {
-      throw new Error("User not found")
-    }
-
-    // Update user
-    const updatedUser = {
-      ...users[userIndex],
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    }
-
-    users[userIndex] = updatedUser
-    localStorage.setItem("mechaleague_users", JSON.stringify(users))
-
-    // Update current user if it's the same
-    const currentUserId = localStorage.getItem("currentUserId")
-    if (currentUserId === id) {
-      localStorage.setItem("currentUser", JSON.stringify(updatedUser))
-    }
-
-    return updatedUser
+  getTournamentById(tournamentId: string): Tournament | null {
+    return this.getTournament(tournamentId)
   }
 
-  // Delete user
-  static deleteUser(id: string): boolean {
-    const users = this.getUsers()
-    const filteredUsers = users.filter((user) => user.id !== id)
-
-    if (filteredUsers.length === users.length) {
-      return false // User not found
-    }
-
-    localStorage.setItem("mechaleague_users", JSON.stringify(filteredUsers))
-    return true
-  }
-
-  // Authentication methods
-  static authenticateUser(email: string, password: string): User | null {
-    const users = this.getUsers()
-    const user = users.find((u) => u.email === email && u.password === password)
-    return user || null
-  }
-
-  // Get current user
-  static getCurrentUser(): User | null {
-    // Check if we're in a browser environment
-    if (typeof window === "undefined") {
-      return null
-    }
-
-    const userId = localStorage.getItem("currentUserId")
-    if (!userId) return null
-
-    return this.getUserById(userId)
-  }
-
-  // Set current user
-  static setCurrentUser(userId: string): void {
-    // Check if we're in a browser environment
-    if (typeof window === "undefined") {
-      return
-    }
-
-    const user = this.getUserById(userId)
-    if (!user) return
-
-    localStorage.setItem("currentUserId", userId)
-    localStorage.setItem("userLoggedIn", "true")
-    localStorage.setItem("currentUser", JSON.stringify(user))
-  }
-
-  // Clear current user (logout)
-  static clearCurrentUser(): void {
-    // Check if we're in a browser environment
-    if (typeof window === "undefined") {
-      return
-    }
-
-    localStorage.removeItem("currentUserId")
-    localStorage.removeItem("userLoggedIn")
-    localStorage.removeItem("currentUser")
-  }
-
-  // Follow/unfollow team
-  static toggleFollowTeam(userId: string, teamId: string): User {
-    const user = this.getUserById(userId)
-    if (!user) throw new Error("User not found")
-
-    const followedTeams = [...user.followedTeams]
-    const teamIndex = followedTeams.indexOf(teamId)
-
-    if (teamIndex === -1) {
-      followedTeams.push(teamId)
-    } else {
-      followedTeams.splice(teamIndex, 1)
-    }
-
-    return this.updateUser(userId, { followedTeams })
-  }
-
-  // Follow/unfollow tournament
-  static toggleFollowTournament(userId: string, tournamentId: string): User {
-    const user = this.getUserById(userId)
-    if (!user) throw new Error("User not found")
-
-    const followedTournaments = [...user.followedTournaments]
-    const tournamentIndex = followedTournaments.indexOf(tournamentId)
-
-    if (tournamentIndex === -1) {
-      followedTournaments.push(tournamentId)
-    } else {
-      followedTournaments.splice(tournamentIndex, 1)
-    }
-
-    return this.updateUser(userId, { followedTournaments })
+  getAllTournaments(): Tournament[] {
+    return this.tournaments
   }
 }
 
-// Initialize database with some sample data if empty
-export function initializeDatabase() {
-  const users = Database.getUsers()
-
-  if (users.length === 0) {
-    console.log("Initializing database with sample data")
-
-    // Create admin user
-    Database.createUser({
-      name: "Admin",
-      email: "admin@mechaleague.com",
-      password: "admin123",
-      avatar: "/placeholder.svg",
-      authProvider: "email",
-      followedTeams: ["team-minus-1", "team-12"],
-      followedTournaments: ["mechaleague-founders-championship"],
-    })
-  }
-}
+export const Database = new DatabaseClass()

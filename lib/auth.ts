@@ -1,4 +1,5 @@
-import { Database, type User } from "./db"
+import { Database } from "./db"
+import type { User } from "./db"
 
 // Authentication service
 export class Auth {
@@ -26,8 +27,12 @@ export class Auth {
       Database.setCurrentUser(user.id)
 
       // Store user data in localStorage for persistence
-      localStorage.setItem("currentUser", JSON.stringify(user))
-      localStorage.setItem("userName", user.name)
+      if (typeof window !== "undefined") {
+        localStorage.setItem("currentUser", JSON.stringify(user))
+        localStorage.setItem("userName", user.name)
+        localStorage.setItem("userLoggedIn", "true")
+        localStorage.setItem("currentUserId", user.id)
+      }
 
       return user
     } catch (error) {
@@ -53,10 +58,14 @@ export class Auth {
 
       // Set as current user
       Database.setCurrentUser(user.id)
-      localStorage.setItem("userName", user.name)
 
       // Store user data in localStorage for persistence
-      localStorage.setItem("currentUser", JSON.stringify(user))
+      if (typeof window !== "undefined") {
+        localStorage.setItem("userName", user.name)
+        localStorage.setItem("currentUser", JSON.stringify(user))
+        localStorage.setItem("userLoggedIn", "true")
+        localStorage.setItem("currentUserId", user.id)
+      }
 
       return user
     } catch (error) {
@@ -79,7 +88,7 @@ export class Auth {
           name,
           avatar: imageUrl || user.avatar,
           authProvider: "google",
-        })
+        }) as User
       } else {
         // Create new user
         user = Database.createUser({
@@ -89,15 +98,20 @@ export class Auth {
           followedTeams: [],
           followedTournaments: [],
           avatar: imageUrl || "/placeholder.svg",
+          password: "",
         })
       }
 
       // Set as current user
       Database.setCurrentUser(user.id)
-      localStorage.setItem("userName", user.name)
 
       // Store user data in localStorage for persistence
-      localStorage.setItem("currentUser", JSON.stringify(user))
+      if (typeof window !== "undefined") {
+        localStorage.setItem("userName", user.name)
+        localStorage.setItem("currentUser", JSON.stringify(user))
+        localStorage.setItem("userLoggedIn", "true")
+        localStorage.setItem("currentUserId", user.id)
+      }
 
       return user
     } catch (error) {
@@ -109,8 +123,12 @@ export class Auth {
   // Logout
   static logout(): void {
     Database.clearCurrentUser()
-    localStorage.removeItem("currentUser")
-    localStorage.removeItem("userName")
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("currentUser")
+      localStorage.removeItem("userName")
+      localStorage.removeItem("userLoggedIn")
+      localStorage.removeItem("currentUserId")
+    }
   }
 
   // Get current user
@@ -123,23 +141,50 @@ export class Auth {
     // Try to get from localStorage first for persistence
     const storedUser = localStorage.getItem("currentUser")
     if (storedUser) {
-      return JSON.parse(storedUser)
+      try {
+        return JSON.parse(storedUser)
+      } catch (error) {
+        console.error("Error parsing stored user:", error)
+        return null
+      }
     }
 
     // Fall back to database
     return Database.getCurrentUser()
   }
 
+  // Check if user is logged in
+  static isLoggedIn(): boolean {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("userLoggedIn") === "true"
+    }
+    return false
+  }
+
   // Update user profile
-  static updateProfile(userId: string, updates: Partial<User>): User {
+  static updateProfile(userId: string, updates: Partial<User>): User | null {
     const updatedUser = Database.updateUser(userId, updates)
 
-    // Update localStorage
-    localStorage.setItem("currentUser", JSON.stringify(updatedUser))
-    if (updates.name) {
-      localStorage.setItem("userName", updates.name)
+    if (updatedUser && typeof window !== "undefined") {
+      // Update localStorage
+      localStorage.setItem("currentUser", JSON.stringify(updatedUser))
+      if (updates.name) {
+        localStorage.setItem("userName", updates.name)
+      }
     }
 
+    return updatedUser
+  }
+
+  // Update current user
+  static updateCurrentUser(updates: Partial<User>): User | null {
+    const currentUser = this.getCurrentUser()
+    if (!currentUser) return null
+
+    const updatedUser = Database.updateUser(currentUser.id, updates)
+    if (updatedUser && typeof window !== "undefined") {
+      localStorage.setItem("currentUser", JSON.stringify(updatedUser))
+    }
     return updatedUser
   }
 }

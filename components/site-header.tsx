@@ -3,99 +3,75 @@
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Menu } from "lucide-react"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { NotificationCenter } from "@/components/notification-center"
-import { AuthButtons } from "@/components/auth-buttons"
-import { useEffect, useState } from "react"
 
 export function SiteHeader() {
   const pathname = usePathname()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const userLoggedIn = localStorage.getItem("userLoggedIn")
-      setIsLoggedIn(userLoggedIn === "true")
+  const isActive = (path: string) => {
+    if (path === "/") {
+      return pathname === "/"
     }
-  }, [])
-
-  const navItems = [
-    { href: "/", label: "Home" },
-    { href: "/teams", label: "Teams" },
-    { href: "/tournaments", label: "Tournaments" },
-    { href: "/hall-of-fame", label: "Hall of Fame" },
-    { href: "/about", label: "About" },
-  ]
+    return pathname.startsWith(path)
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6 max-w-[1600px] mx-auto">
-        <div className="flex items-center gap-3 md:gap-6 lg:gap-10">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl whitespace-nowrap">
-            <Image
-              src="/images/mechaleague-logo-header.png"
-              alt="MechaLeague"
-              width={24}
-              height={24}
-              className="h-[1em] w-auto"
-            />
-            <span className="hidden sm:inline">MechaLeague</span>
+      <div className="container flex h-16 items-center justify-between px-4">
+        <Link href="/" className="flex items-center space-x-2">
+          <Image
+            src="/images/mechaleague-logo-header.png"
+            alt="MechaLeague"
+            width={20}
+            height={20}
+            className="h-5 w-5"
+          />
+          <span className="font-bold text-xl">MechaLeague</span>
+        </Link>
+
+        <nav className="absolute left-1/2 transform -translate-x-1/2 hidden md:flex gap-6">
+          <Link
+            href="/"
+            className={`text-sm font-medium transition-colors hover:text-primary ${
+              isActive("/") && pathname === "/" ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            Home
           </Link>
+          <Link
+            href="/tournaments"
+            className={`text-sm font-medium transition-colors hover:text-primary ${
+              isActive("/tournaments") ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            Tournaments
+          </Link>
+          <Link
+            href="/teams"
+            className={`text-sm font-medium transition-colors hover:text-primary ${
+              isActive("/teams") ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            Teams
+          </Link>
+          <Link
+            href="/hall-of-fame"
+            className={`text-sm font-medium transition-colors hover:text-primary ${
+              isActive("/hall-of-fame") ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            Hall of Fame
+          </Link>
+          <Link
+            href="/about"
+            className={`text-sm font-medium transition-colors hover:text-primary ${
+              isActive("/about") ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            About
+          </Link>
+        </nav>
 
-          <nav className="hidden md:flex items-center gap-4 lg:gap-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`text-sm font-medium whitespace-nowrap transition-colors hover:text-primary ${
-                  pathname === item.href ? "text-primary" : "text-muted-foreground"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {isLoggedIn && (
-            <div className="hidden md:block">
-              <NotificationCenter />
-            </div>
-          )}
-          <div className="hidden md:block">
-            <AuthButtons />
-          </div>
-
-          <Sheet>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              <nav className="flex flex-col gap-4 mt-8">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`text-sm font-medium transition-colors hover:text-primary ${
-                      pathname === item.href ? "text-primary" : "text-muted-foreground"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-                <div className="pt-4 border-t">
-                  <AuthButtons />
-                </div>
-              </nav>
-            </SheetContent>
-          </Sheet>
-        </div>
+        <div className="w-20"></div>
       </div>
     </header>
   )
